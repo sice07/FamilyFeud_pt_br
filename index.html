@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Jogo da Família — versão adulta</title>
+<title>Jogo da Família</title>
 <style>
 :root{
   --noite:#04091a;
@@ -43,6 +43,18 @@ body::before{
     linear-gradient(180deg,#0d1e44 0%, #071129 55%, #04091a 100%);
 }
 /* textura fina de palco */
+.particulas{position:fixed;inset:0;z-index:-1;overflow:hidden;pointer-events:none}
+.particula{
+  position:absolute;bottom:-20px;border-radius:50%;
+  background:radial-gradient(circle,rgba(247,194,73,.85),rgba(247,194,73,0) 70%);
+  animation:flutuar linear infinite;opacity:0
+}
+@keyframes flutuar{
+  0%{transform:translateY(0) translateX(0);opacity:0}
+  8%{opacity:.75}
+  92%{opacity:.35}
+  100%{transform:translateY(-108vh) translateX(var(--dx,20px));opacity:0}
+}
 body::after{
   content:"";position:fixed;inset:0;z-index:-1;pointer-events:none;
   background-image:repeating-linear-gradient(90deg, rgba(255,255,255,.035) 0 1px, transparent 1px 3px);
@@ -97,6 +109,12 @@ button{font:inherit;color:inherit;background:none;border:none;cursor:pointer}
   border:1px solid rgba(247,194,73,.45);background:rgba(247,194,73,.08)
 }
 .menu-botoes{display:flex;flex-direction:column;gap:12px;width:min(400px,84vw);margin-top:1vh}
+.menu-botoes .btn-menu{opacity:0;animation:subir .5s ease both;animation-delay:calc(.12s + var(--i,0) * 80ms)}
+@keyframes subir{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:none}}
+.marca{opacity:0;animation:aparecer .6s ease .05s both}
+@keyframes aparecer{from{opacity:0;transform:translateY(-8px)}to{opacity:1;transform:none}}
+.btn-menu.destaque{animation:subir .5s ease both, flutuarbotao 3s ease-in-out 1s infinite}
+@keyframes flutuarbotao{0%,100%{transform:translateY(0)}50%{transform:translateY(-4px)}}
 .menu-info{font-size:14px;color:var(--texto-fraco)}
 .rodape{position:absolute;bottom:16px;font-size:13px;color:#5c6f96}
 
@@ -110,7 +128,11 @@ button{font:inherit;color:inherit;background:none;border:none;cursor:pointer}
 }
 .time::before{content:"";position:absolute;left:0;top:0;bottom:0;width:5px;background:var(--ciano)}
 #time-1::before{background:var(--magenta);left:auto;right:0}
-.time.ativo{border-color:var(--ambar);box-shadow:0 0 0 1px var(--ambar), 0 0 34px rgba(247,194,73,.28)}
+.time.ativo{border-color:var(--ambar);animation:respirar 2.2s ease-in-out infinite}
+@keyframes respirar{
+  0%,100%{box-shadow:0 0 0 1px var(--ambar), 0 0 22px rgba(247,194,73,.22)}
+  50%{box-shadow:0 0 0 1px var(--ambar-claro), 0 0 42px rgba(247,194,73,.45)}
+}
 .time-nome{
   font-size:clamp(14px,1.6vw,21px);font-weight:700;text-align:left;
   display:flex;align-items:center;gap:8px;border-radius:6px;padding:2px 4px
@@ -133,10 +155,23 @@ button{font:inherit;color:inherit;background:none;border:none;cursor:pointer}
 .rodada-info.desempate{border-color:var(--vermelho);box-shadow:0 0 26px rgba(227,59,61,.35)}
 .rodada-info.desempate small{color:#ff9a9b}
 
+/* ---------- tema ---------- */
+.tema-linha{align-self:center;display:flex;align-items:center;gap:8px;margin-top:1vh}
+.tema{
+  padding:5px 16px;border-radius:999px;white-space:nowrap;
+  font-size:clamp(11px,1.05vw,13px);font-weight:700;letter-spacing:.08em;text-transform:uppercase;
+  color:var(--ciano);border:1px solid rgba(63,201,240,.5);background:rgba(63,201,240,.1)
+}
+.tema-num{
+  padding:5px 12px;border-radius:999px;
+  font-size:clamp(11px,1.1vw,13px);font-weight:700;letter-spacing:.06em;font-variant-numeric:tabular-nums;
+  color:var(--ambar);border:1px solid rgba(247,194,73,.4);background:rgba(247,194,73,.08)
+}
+
 /* ---------- pergunta ---------- */
 .pergunta{
-  text-align:center;padding:2.2vh 6vw 1.4vh;margin:0 auto;max-width:24ch;
-  font-size:clamp(19px,3vw,42px);font-weight:700;line-height:1.14;letter-spacing:-.01em;
+  text-align:center;padding:1.6vh 6vw 1vh;margin:0 auto;max-width:24ch;
+  font-size:clamp(17px,2.6vw,38px);font-weight:700;line-height:1.14;letter-spacing:-.01em;
   text-shadow:0 2px 22px rgba(0,0,0,.5)
 }
 
@@ -157,10 +192,22 @@ button{font:inherit;color:inherit;background:none;border:none;cursor:pointer}
 @keyframes pulsar{40%{transform:scale(1.09)}}
 
 /* ---------- painel ---------- */
-.painel{flex:1;display:grid;gap:11px 16px;align-content:center;padding:0 4vw;grid-template-columns:1fr}
+.painel-mesa{
+  flex:1;display:flex;align-items:center;justify-content:center;padding:1vh 3vw;min-height:0;overflow:hidden
+}
+.painel{
+  --altura-placa:clamp(48px,8.6vh,86px);
+  width:100%;display:grid;gap:11px 16px;grid-auto-rows:minmax(44px,1fr);grid-template-columns:1fr;
+  padding:2.2vh 2.6vw;border-radius:22px;
+  background:
+    linear-gradient(180deg,rgba(255,255,255,.05),rgba(255,255,255,0) 30%),
+    radial-gradient(120% 100% at 50% 0%, rgba(50,90,180,.28), rgba(6,14,34,.55) 70%);
+  border:1px solid rgba(120,160,240,.22);
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.08), inset 0 0 50px rgba(0,0,0,.35), 0 14px 40px rgba(0,0,0,.35)
+}
 .painel.duas{grid-template-columns:1fr 1fr}
 .slot{
-  position:relative;width:100%;height:clamp(48px,8.6vh,86px);
+  position:relative;width:100%;height:100%;min-height:44px;
   perspective:1100px;background:none;border:none;padding:0;
   animation:surgir .34s ease both;animation-delay:calc(var(--i,0) * 45ms)
 }
@@ -178,7 +225,7 @@ button{font:inherit;color:inherit;background:none;border:none;cursor:pointer}
 .frente{
   justify-content:center;
   background:
-    radial-gradient(120% 130% at 50% -20%, #2a63cf 0%, #143a90 55%, #0e2a66 100%);
+    radial-gradient(120% 130% at 50% -20%, #3573e8 0%, #17429c 55%, #0b1f52 100%);
   border:1px solid var(--borda)
 }
 .frente .num{
@@ -190,20 +237,40 @@ button{font:inherit;color:inherit;background:none;border:none;cursor:pointer}
   background:linear-gradient(180deg,rgba(255,255,255,.14),transparent 45%)
 }
 .verso{
-  transform:rotateX(180deg);
-  background:linear-gradient(180deg,#3477f2,#17459f);
+  position:relative;transform:rotateX(180deg);
+  background:linear-gradient(165deg,#4482f7 0%,#2a63d8 45%,#123468 100%);
   border:1px solid #6ba0ff
 }
+.verso::after{
+  content:"";position:absolute;inset:0;z-index:1;pointer-events:none;border-radius:inherit;
+  background:linear-gradient(180deg,rgba(255,255,255,.32) 0%,rgba(255,255,255,.06) 22%,transparent 55%)
+}
+.verso .medalha{
+  position:relative;z-index:3;flex:0 0 auto;
+  width:clamp(28px,3vw,40px);height:clamp(28px,3vw,40px);
+  margin-left:14px;border-radius:50%;display:flex;align-items:center;justify-content:center;
+  font-size:clamp(13px,1.4vw,17px);font-weight:800;color:#dce8ff;line-height:1;
+  background:radial-gradient(circle at 35% 30%, rgba(255,255,255,.28), rgba(255,255,255,0) 60%),rgba(6,16,40,.45);
+  border:1px solid rgba(255,255,255,.32);
+  box-shadow:inset 0 1px 2px rgba(255,255,255,.25), 0 2px 6px rgba(0,0,0,.3)
+}
+.verso::before{
+  content:"";position:absolute;inset:0;z-index:2;pointer-events:none;
+  background:linear-gradient(100deg,transparent 30%,rgba(255,255,255,.55) 48%,transparent 66%);
+  background-size:250% 100%;background-position:150% 0;
+  animation:brilhoverso .7s ease-out .08s both
+}
+@keyframes brilhoverso{to{background-position:-50% 0}}
 .verso .texto{
-  flex:1;padding:0 10px 0 20px;text-align:left;
+  position:relative;z-index:3;flex:1 1 auto;min-width:0;padding:0 10px 0 14px;text-align:left;
   font-size:clamp(15px,2.05vw,30px);font-weight:700;line-height:1.08;
   text-shadow:0 1px 6px rgba(0,0,0,.35)
 }
 .verso .pontos{
-  align-self:stretch;display:flex;align-items:center;justify-content:center;
+  position:relative;z-index:3;flex:0 0 auto;align-self:stretch;display:flex;align-items:center;justify-content:center;
   min-width:clamp(58px,5.6vw,96px);font-size:clamp(19px,2.5vw,34px);font-weight:800;
-  color:#2a1c00;background:linear-gradient(180deg,var(--ambar-claro),var(--ambar));
-  box-shadow:inset 2px 0 0 rgba(0,0,0,.15)
+  color:#2a1c00;background:linear-gradient(165deg,var(--ambar-claro),var(--ambar) 60%,#c98f1e 100%);
+  box-shadow:inset 2px 0 0 rgba(0,0,0,.15), inset 0 2px 4px rgba(255,255,255,.5)
 }
 .slot:hover .frente{border-color:#7fb0ff}
 .slot.vazio{opacity:0;pointer-events:none;animation:none}
@@ -253,7 +320,19 @@ button{font:inherit;color:inherit;background:none;border:none;cursor:pointer}
   font-size:min(42vh,42vw);font-weight:900;color:#fff;text-shadow:0 0 60px rgba(0,0,0,.55)
 }
 #flash-erro.on{display:flex;animation:bater .55s ease both}
+#confete{position:fixed;inset:0;z-index:60;pointer-events:none;overflow:hidden}
+.peca-confete{position:absolute;top:-16px;border-radius:2px;animation:cair linear forwards}
+@keyframes cair{
+  to{transform:translateY(112vh) rotate(var(--giro,540deg));opacity:.15}
+}
 @keyframes bater{0%{opacity:0;transform:scale(1.35)}22%{opacity:1;transform:scale(1)}100%{opacity:1}}
+@keyframes tremer{
+  10%,90%{transform:translateX(-1px)}
+  20%,80%{transform:translateX(2px)}
+  30%,50%,70%{transform:translateX(-4px)}
+  40%,60%{transform:translateX(4px)}
+}
+.tremendo{animation:tremer .5s cubic-bezier(.36,.07,.19,.97) both}
 
 /* ---------- equipes ---------- */
 #tela-equipes{align-items:center;justify-content:center;gap:2.6vh;padding:4vh 5vw;text-align:center}
@@ -283,17 +362,21 @@ button{font:inherit;color:inherit;background:none;border:none;cursor:pointer}
 
 /* ---------- fim de partida ---------- */
 #tela-fim{align-items:center;justify-content:center;gap:2.2vh;text-align:center;padding:4vh 5vw}
-.coroa{width:clamp(46px,6vw,84px);height:auto;filter:drop-shadow(0 6px 26px rgba(247,194,73,.5))}
+.coroa{width:clamp(46px,6vw,84px);height:auto;filter:drop-shadow(0 6px 26px rgba(247,194,73,.5));animation:coroacair .6s cubic-bezier(.34,1.56,.64,1) both}
+@keyframes coroacair{0%{opacity:0;transform:translateY(-40px) rotate(-18deg) scale(.6)}100%{opacity:1;transform:none}}
 .fim-titulo{
   font-size:clamp(26px,4.6vw,64px);font-weight:800;letter-spacing:-.02em;
   background:linear-gradient(180deg,var(--ambar-claro),#d99a12);
-  -webkit-background-clip:text;background-clip:text;color:transparent
+  -webkit-background-clip:text;background-clip:text;color:transparent;
+  opacity:0;animation:titulofim .5s ease .15s both
 }
+@keyframes titulofim{from{opacity:0;transform:scale(.85)}to{opacity:1;transform:none}}
 .fim-placar{display:flex;gap:clamp(14px,3.5vw,48px);flex-wrap:wrap;justify-content:center}
 .fim-time{
   position:relative;padding:24px clamp(22px,4vw,52px);border-radius:16px;min-width:min(250px,80vw);
   background:linear-gradient(180deg,rgba(23,48,104,.8),rgba(9,22,52,.8));
-  border:1px solid #2b4f92;overflow:hidden
+  border:1px solid #2b4f92;overflow:hidden;
+  opacity:0;animation:subir .5s ease both;animation-delay:calc(.3s + var(--i,0) * 120ms)
 }
 .fim-time .n{font-size:clamp(15px,1.8vw,22px);font-weight:700;margin-bottom:8px}
 .fim-time .p{font-size:clamp(36px,5.6vw,74px);font-weight:800;color:var(--ambar-claro);line-height:1}
@@ -369,7 +452,7 @@ textarea{resize:vertical;min-height:52px;font-weight:600}
   <h1 class="marca">
     <span class="l1">Jogo da</span>
     <span class="l2">Família</span>
-    <span class="fita">VERSÃO ADULTA · SÓ PARA MAIORES</span>
+    <span class="fita">A RESPOSTA ESTÁ NO PAINEL</span>
   </h1>
   <div class="menu-botoes">
     <button class="btn-menu destaque" data-ir="equipes">Começar a jogar</button>
@@ -398,14 +481,21 @@ textarea{resize:vertical;min-height:52px;font-weight:600}
     </div>
   </div>
 
+  <div class="tema-linha">
+    <span class="tema" id="tema">—</span>
+    <span class="tema-num" id="tema-num">#000</span>
+  </div>
   <h2 class="pergunta" id="pergunta">—</h2>
   <div class="banco" id="banco-caixa"><small>NO BANCO</small><b id="banco">0</b></div>
-  <div class="painel" id="painel"></div>
+  <div class="painel-mesa"><div class="painel" id="painel"></div></div>
   <div class="erros" id="erros"></div>
 
   <div class="controles">
     <button class="ctrl vermelho" id="btn-erro">Marcar erro<kbd>X</kbd></button>
-    <button class="ctrl" id="btn-limpar-erro">Zerar erros</button>
+    <button class="ctrl" id="btn-limpar-erro">Zerar erros<kbd>Z</kbd></button>
+    <span class="divisor"></span>
+    <button class="ctrl" id="btn-turno-0">Turno → Time 1<kbd>C</kbd></button>
+    <button class="ctrl" id="btn-turno-1">Turno → Time 2<kbd>V</kbd></button>
     <span class="divisor"></span>
     <button class="ctrl verde" id="btn-dar-0">Banco → Time 1<kbd>A</kbd></button>
     <button class="ctrl verde" id="btn-dar-1">Banco → Time 2<kbd>B</kbd></button>
@@ -413,17 +503,17 @@ textarea{resize:vertical;min-height:52px;font-weight:600}
     <button class="ctrl" id="btn-revelar">Abrir todas<kbd>R</kbd></button>
     <button class="ctrl ambar" id="btn-mult">Multiplicador<kbd>M</kbd></button>
     <span class="divisor"></span>
-    <button class="ctrl" id="btn-ordem">Ordem sorteada</button>
+    <button class="ctrl" id="btn-ordem">Ordem sorteada<kbd>O</kbd></button>
     <button class="ctrl" id="btn-embaralhar">Sortear de novo<kbd>S</kbd></button>
     <span class="divisor"></span>
-    <button class="ctrl" id="btn-ant">◀ Anterior</button>
+    <button class="ctrl" id="btn-ant">◀ Anterior<kbd>◀</kbd></button>
     <button class="ctrl" id="btn-prox">Próxima ▶<kbd>N</kbd></button>
     <span class="divisor"></span>
-    <button class="ctrl ambar" id="btn-encerrar">Encerrar partida</button>
-    <button class="ctrl" id="btn-equipes">Renomear equipes</button>
-    <button class="ctrl" id="btn-som">Som ligado</button>
-    <button class="ctrl" id="btn-zerar">Zerar placar</button>
-    <button class="ctrl" data-ir="menu">Menu<kbd>Esc</kbd></button>
+    <button class="ctrl ambar" id="btn-encerrar">Encerrar partida<kbd>E</kbd></button>
+    <button class="ctrl" id="btn-equipes">Renomear equipes<kbd>T</kbd></button>
+    <button class="ctrl" id="btn-som">Som ligado<kbd>0</kbd></button>
+    <button class="ctrl" id="btn-zerar">Zerar placar<kbd>9</kbd></button>
+    <button class="ctrl" data-ir="menu">Menu<kbd>Q</kbd></button>
   </div>
 </section>
 
@@ -505,7 +595,8 @@ textarea{resize:vertical;min-height:52px;font-weight:600}
       <ul>
         <li>Leia a pergunta em voz alta. O painel começa todo fechado.</li>
         <li>Quando alguém acerta, clique no número correspondente. A placa vira e os pontos entram no banco.</li>
-        <li>Errou? <span class="tecla">X</span> marca um erro. Ao terceiro erro, o time perde a vez e o adversário tenta roubar com um único palpite.</li>
+        <li>Antes de começar, aponte quem está no turno com <span class="tecla">C</span> ou <span class="tecla">V</span> — o card do time pisca em dourado enquanto ele estiver na vez.</li>
+        <li>Errou? <span class="tecla">X</span> marca um erro. Ao terceiro erro, o banco vai direto para quem estava no turno e a vez passa para o outro time.</li>
         <li>Acabou a rodada: <span class="tecla">A</span> ou <span class="tecla">B</span> entrega o banco ao time vencedor da rodada.</li>
         <li><span class="tecla">N</span> avança para a próxima pergunta.</li>
       </ul>
@@ -518,13 +609,19 @@ textarea{resize:vertical;min-height:52px;font-weight:600}
       <p>A tecla <span class="tecla">M</span> alterna entre x1, x2 e x3. Vale dobrar na metade do jogo e triplicar na última pergunta — é o que mantém a virada possível até o fim.</p>
       <h3>Nome das equipes</h3>
       <p>Antes da partida o jogo pergunta os nomes das duas equipes. Para mudar no meio do jogo, clique no nome no alto da tela ou use “Renomear equipes”. Os nomes ficam salvos para a próxima vez.</p>
+      <p>Todos os comandos têm tecla própria, pensado para jogar com um teclado ligado direto na TV — não é preciso usar o mouse em nenhum momento da partida. O <span class="tecla">Esc</span> não é usado para nada aqui de propósito: em tela cheia, ele sai da tela cheia antes mesmo do jogo reagir, então o botão de menu ficou na tecla <span class="tecla">Q</span>.</p>
       <h3>Teclas</h3>
       <ul>
         <li><span class="tecla">1</span>–<span class="tecla">8</span> abre a resposta daquela posição</li>
-        <li><span class="tecla">X</span> erro · <span class="tecla">R</span> abre todas · <span class="tecla">M</span> multiplicador</li>
+        <li><span class="tecla">X</span> marca erro · <span class="tecla">Z</span> zera os erros</li>
+        <li><span class="tecla">R</span> abre todas · <span class="tecla">M</span> multiplicador</li>
         <li><span class="tecla">A</span> / <span class="tecla">B</span> banco para o time 1 / time 2</li>
-        <li><span class="tecla">N</span> próxima pergunta · <span class="tecla">S</span> sorteia nova ordem</li>
-        <li><span class="tecla">Esc</span> volta ao menu · <span class="tecla">F</span> tela cheia</li>
+        <li><span class="tecla">C</span> / <span class="tecla">V</span> aponta quem está no turno agora</li>
+        <li><span class="tecla">◀</span> / <span class="tecla">▶</span> ou <span class="tecla">N</span> troca de pergunta</li>
+        <li><span class="tecla">S</span> sorteia nova ordem · <span class="tecla">O</span> alterna sorteada/editor</li>
+        <li><span class="tecla">E</span> encerra a partida · <span class="tecla">T</span> renomear equipes</li>
+        <li><span class="tecla">0</span> liga/desliga o som · <span class="tecla">9</span> zera o placar</li>
+        <li><span class="tecla">Q</span> volta ao menu · <span class="tecla">F</span> tela cheia</li>
       </ul>
       <h3>Levar para outro computador</h3>
       <p>No editor, use “Baixar jogo com meus temas”. O arquivo que sai já contém as suas perguntas — basta copiar para o pendrive e abrir com duplo clique no PC ligado à TV.</p>
@@ -533,6 +630,8 @@ textarea{resize:vertical;min-height:52px;font-weight:600}
 </section>
 
 <div id="flash-erro">✗</div>
+<div class="particulas" id="particulas"></div>
+<div id="confete"></div>
 
 <script id="dados-embutidos" type="application/json">/*DADOS-INI*/
 {
@@ -568,7 +667,9 @@ textarea{resize:vertical;min-height:52px;font-weight:600}
      "texto": "Yu-Gi-Oh!",
      "pontos": 4
     }
-   ]
+   ],
+   "categoria": "Anime",
+   "numero": 1
   },
   {
    "pergunta": "Cite um golpe de anime que todo mundo já imitou",
@@ -601,7 +702,9 @@ textarea{resize:vertical;min-height:52px;font-weight:600}
      "texto": "Jutsu do clone",
      "pontos": 3
     }
-   ]
+   ],
+   "categoria": "Anime",
+   "numero": 2
   },
   {
    "pergunta": "O que nunca falta num episódio de anime?",
@@ -630,7 +733,9 @@ textarea{resize:vertical;min-height:52px;font-weight:600}
      "texto": "Episódio inteiro sem sair do lugar",
      "pontos": 9
     }
-   ]
+   ],
+   "categoria": "Anime",
+   "numero": 3
   },
   {
    "pergunta": "Cite um protagonista de anime que grita o tempo todo",
@@ -659,7 +764,9 @@ textarea{resize:vertical;min-height:52px;font-weight:600}
      "texto": "Natsu",
      "pontos": 7
     }
-   ]
+   ],
+   "categoria": "Anime",
+   "numero": 4
   },
   {
    "pergunta": "O que todo vilão de anime tem?",
@@ -684,7 +791,9 @@ textarea{resize:vertical;min-height:52px;font-weight:600}
      "texto": "Passado trágico",
      "pontos": 16
     }
-   ]
+   ],
+   "categoria": "Anime",
+   "numero": 5
   },
   {
    "pergunta": "Cite um herói da Marvel",
@@ -717,7 +826,9 @@ textarea{resize:vertical;min-height:52px;font-weight:600}
      "texto": "Doutor Estranho",
      "pontos": 4
     }
-   ]
+   ],
+   "categoria": "Marvel",
+   "numero": 6
   },
   {
    "pergunta": "Cite um vilão da Marvel",
@@ -750,7 +861,9 @@ textarea{resize:vertical;min-height:52px;font-weight:600}
      "texto": "Doutor Destino",
      "pontos": 5
     }
-   ]
+   ],
+   "categoria": "Marvel",
+   "numero": 7
   },
   {
    "pergunta": "O que sempre acontece num filme da Marvel?",
@@ -779,7 +892,9 @@ textarea{resize:vertical;min-height:52px;font-weight:600}
      "texto": "Herói morre e volta",
      "pontos": 7
     }
-   ]
+   ],
+   "categoria": "Marvel",
+   "numero": 8
   },
   {
    "pergunta": "Cite um objeto poderoso do universo Marvel",
@@ -808,7 +923,9 @@ textarea{resize:vertical;min-height:52px;font-weight:600}
      "texto": "Capa da levitação",
      "pontos": 4
     }
-   ]
+   ],
+   "categoria": "Marvel",
+   "numero": 9
   },
   {
    "pergunta": "Cite um ator que virou herói da Marvel no cinema",
@@ -837,7 +954,9 @@ textarea{resize:vertical;min-height:52px;font-weight:600}
      "texto": "Mark Ruffalo",
      "pontos": 4
     }
-   ]
+   ],
+   "categoria": "Marvel",
+   "numero": 10
   },
   {
    "pergunta": "Cite um herói da DC",
@@ -866,7 +985,9 @@ textarea{resize:vertical;min-height:52px;font-weight:600}
      "texto": "Lanterna Verde",
      "pontos": 5
     }
-   ]
+   ],
+   "categoria": "DC",
+   "numero": 11
   },
   {
    "pergunta": "Cite um vilão da DC",
@@ -899,7 +1020,9 @@ textarea{resize:vertical;min-height:52px;font-weight:600}
      "texto": "Espantalho",
      "pontos": 6
     }
-   ]
+   ],
+   "categoria": "DC",
+   "numero": 12
   },
   {
    "pergunta": "O que não pode faltar num filme do Batman?",
@@ -928,7 +1051,9 @@ textarea{resize:vertical;min-height:52px;font-weight:600}
      "texto": "Alfred dando bronca",
      "pontos": 8
     }
-   ]
+   ],
+   "categoria": "DC",
+   "numero": 13
   },
   {
    "pergunta": "O que enfraquece o Superman?",
@@ -953,7 +1078,9 @@ textarea{resize:vertical;min-height:52px;font-weight:600}
      "texto": "Doomsday",
      "pontos": 8
     }
-   ]
+   ],
+   "categoria": "DC",
+   "numero": 14
   },
   {
    "pergunta": "Herói ou vilão: cite alguém que usa capa",
@@ -982,7 +1109,9 @@ textarea{resize:vertical;min-height:52px;font-weight:600}
      "texto": "Doutor Destino",
      "pontos": 8
     }
-   ]
+   ],
+   "categoria": "DC",
+   "numero": 15
   },
   {
    "pergunta": "Cite um personagem de Naruto",
@@ -1019,7 +1148,9 @@ textarea{resize:vertical;min-height:52px;font-weight:600}
      "texto": "Gaara",
      "pontos": 3
     }
-   ]
+   ],
+   "categoria": "Naruto",
+   "numero": 16
   },
   {
    "pergunta": "Cite um jutsu de Naruto",
@@ -1048,7 +1179,9 @@ textarea{resize:vertical;min-height:52px;font-weight:600}
      "texto": "Sexy no jutsu",
      "pontos": 7
     }
-   ]
+   ],
+   "categoria": "Naruto",
+   "numero": 17
   },
   {
    "pergunta": "O que o Naruto faz o tempo todo?",
@@ -1073,7 +1206,9 @@ textarea{resize:vertical;min-height:52px;font-weight:600}
      "texto": "Se recusa a desistir",
      "pontos": 14
     }
-   ]
+   ],
+   "categoria": "Naruto",
+   "numero": 18
   },
   {
    "pergunta": "Cite um clã famoso de Naruto",
@@ -1098,7 +1233,9 @@ textarea{resize:vertical;min-height:52px;font-weight:600}
      "texto": "Senju",
      "pontos": 7
     }
-   ]
+   ],
+   "categoria": "Naruto",
+   "numero": 19
   },
   {
    "pergunta": "Cite um membro do bando do Chapéu de Palha",
@@ -1135,7 +1272,9 @@ textarea{resize:vertical;min-height:52px;font-weight:600}
      "texto": "Brook",
      "pontos": 2
     }
-   ]
+   ],
+   "categoria": "One Piece",
+   "numero": 20
   },
   {
    "pergunta": "Cite um poder de Fruta do Diabo em One Piece",
@@ -1168,7 +1307,9 @@ textarea{resize:vertical;min-height:52px;font-weight:600}
      "texto": "Trevas",
      "pontos": 6
     }
-   ]
+   ],
+   "categoria": "One Piece",
+   "numero": 21
   },
   {
    "pergunta": "O que sempre acontece em One Piece?",
@@ -1197,7 +1338,9 @@ textarea{resize:vertical;min-height:52px;font-weight:600}
      "texto": "Alguém chora contando o passado",
      "pontos": 9
     }
-   ]
+   ],
+   "categoria": "One Piece",
+   "numero": 22
   },
   {
    "pergunta": "Cite o sonho de um personagem de One Piece",
@@ -1226,7 +1369,9 @@ textarea{resize:vertical;min-height:52px;font-weight:600}
      "texto": "Conhecer a história perdida",
      "pontos": 4
     }
-   ]
+   ],
+   "categoria": "One Piece",
+   "numero": 23
   },
   {
    "pergunta": "Cite um personagem de Dragon Ball",
@@ -1263,7 +1408,9 @@ textarea{resize:vertical;min-height:52px;font-weight:600}
      "texto": "Kuririn",
      "pontos": 3
     }
-   ]
+   ],
+   "categoria": "Dragon Ball",
+   "numero": 24
   },
   {
    "pergunta": "Cite um golpe de Dragon Ball",
@@ -1296,7 +1443,9 @@ textarea{resize:vertical;min-height:52px;font-weight:600}
      "texto": "Teletransporte",
      "pontos": 4
     }
-   ]
+   ],
+   "categoria": "Dragon Ball",
+   "numero": 25
   },
   {
    "pergunta": "O que sempre acontece em Dragon Ball?",
@@ -1321,7 +1470,9 @@ textarea{resize:vertical;min-height:52px;font-weight:600}
      "texto": "A Terra quase é destruída",
      "pontos": 14
     }
-   ]
+   ],
+   "categoria": "Dragon Ball",
+   "numero": 26
   },
   {
    "pergunta": "Cite um vilão de Dragon Ball",
@@ -1350,7 +1501,9 @@ textarea{resize:vertical;min-height:52px;font-weight:600}
      "texto": "Beerus",
      "pontos": 5
     }
-   ]
+   ],
+   "categoria": "Dragon Ball",
+   "numero": 27
   },
   {
    "pergunta": "Cite algo que você diz tanto para o cachorro quanto para o marido",
@@ -1379,7 +1532,9 @@ textarea{resize:vertical;min-height:52px;font-weight:600}
      "texto": "Bom menino",
      "pontos": 12
     }
-   ]
+   ],
+   "categoria": "Duplo sentido",
+   "numero": 28
   },
   {
    "pergunta": "Cite algo que serve tanto para um bebê quanto para um namorado",
@@ -1408,7 +1563,9 @@ textarea{resize:vertical;min-height:52px;font-weight:600}
      "texto": "Trocar a roupa suja",
      "pontos": 11
     }
-   ]
+   ],
+   "categoria": "Duplo sentido",
+   "numero": 29
   },
   {
    "pergunta": "Cite algo que você fala para o chefe e também para a sogra",
@@ -1433,7 +1590,9 @@ textarea{resize:vertical;min-height:52px;font-weight:600}
      "texto": "Adorei, sério",
      "pontos": 16
     }
-   ]
+   ],
+   "categoria": "Duplo sentido",
+   "numero": 30
   },
   {
    "pergunta": "Cite algo que serve para descrever um carro velho e um sogro",
@@ -1458,7 +1617,9 @@ textarea{resize:vertical;min-height:52px;font-weight:600}
      "texto": "Não pega mais",
      "pontos": 12
     }
-   ]
+   ],
+   "categoria": "Duplo sentido",
+   "numero": 31
   },
   {
    "pergunta": "Cite uma frase que serve na academia e num encontro romântico",
@@ -1483,7 +1644,9 @@ textarea{resize:vertical;min-height:52px;font-weight:600}
      "texto": "Amanhã eu volto",
      "pontos": 16
     }
-   ]
+   ],
+   "categoria": "Duplo sentido",
+   "numero": 32
   },
   {
    "pergunta": "Cite algo que a mãe fala e o técnico de futebol também",
@@ -1508,7 +1671,9 @@ textarea{resize:vertical;min-height:52px;font-weight:600}
      "texto": "Senta aí e pensa no que fez",
      "pontos": 14
     }
-   ]
+   ],
+   "categoria": "Duplo sentido",
+   "numero": 33
   },
   {
    "pergunta": "Cite algo que se fala para o cachorro e para uma criança pequena",
@@ -1533,7 +1698,9 @@ textarea{resize:vertical;min-height:52px;font-weight:600}
      "texto": "Quem fez isso?",
      "pontos": 14
     }
-   ]
+   ],
+   "categoria": "Duplo sentido",
+   "numero": 34
   },
   {
    "pergunta": "Cite algo que serve para um celular velho e para um ex",
@@ -1558,7 +1725,9 @@ textarea{resize:vertical;min-height:52px;font-weight:600}
      "texto": "Já passou da hora de trocar",
      "pontos": 14
     }
-   ]
+   ],
+   "categoria": "Duplo sentido",
+   "numero": 35
   },
   {
    "pergunta": "Cite algo que se diz para um bêbado e para um bebê",
@@ -1583,7 +1752,9 @@ textarea{resize:vertical;min-height:52px;font-weight:600}
      "texto": "Você está bem?",
      "pontos": 14
     }
-   ]
+   ],
+   "categoria": "Duplo sentido",
+   "numero": 36
   },
   {
    "pergunta": "Cite algo que serve para o wi-fi e para um relacionamento",
@@ -1608,7 +1779,9 @@ textarea{resize:vertical;min-height:52px;font-weight:600}
      "texto": "A senha eu não passo",
      "pontos": 14
     }
-   ]
+   ],
+   "categoria": "Duplo sentido",
+   "numero": 37
   },
   {
    "pergunta": "Cite um time grande do futebol brasileiro",
@@ -1645,7 +1818,9 @@ textarea{resize:vertical;min-height:52px;font-weight:600}
      "texto": "Santos",
      "pontos": 4
     }
-   ]
+   ],
+   "categoria": "Futebol brasileiro",
+   "numero": 38
   },
   {
    "pergunta": "Cite um craque brasileiro de Copa do Mundo",
@@ -1682,7 +1857,9 @@ textarea{resize:vertical;min-height:52px;font-weight:600}
      "texto": "Bebeto",
      "pontos": 3
     }
-   ]
+   ],
+   "categoria": "Futebol brasileiro",
+   "numero": 39
   },
   {
    "pergunta": "Cite um apelido de time brasileiro",
@@ -1715,7 +1892,9 @@ textarea{resize:vertical;min-height:52px;font-weight:600}
      "texto": "Fogão",
      "pontos": 7
     }
-   ]
+   ],
+   "categoria": "Futebol brasileiro",
+   "numero": 40
   },
   {
    "pergunta": "O que não pode faltar num jogo de futebol no Brasil?",
@@ -1744,7 +1923,9 @@ textarea{resize:vertical;min-height:52px;font-weight:600}
      "texto": "Confusão na saída",
      "pontos": 10
     }
-   ]
+   ],
+   "categoria": "Futebol brasileiro",
+   "numero": 41
   },
   {
    "pergunta": "Cite algo que o torcedor grita no estádio",
@@ -1769,7 +1950,9 @@ textarea{resize:vertical;min-height:52px;font-weight:600}
      "texto": "Vai, time!",
      "pontos": 14
     }
-   ]
+   ],
+   "categoria": "Futebol brasileiro",
+   "numero": 42
   },
   {
    "pergunta": "Cite um estádio brasileiro famoso",
@@ -1802,7 +1985,9 @@ textarea{resize:vertical;min-height:52px;font-weight:600}
      "texto": "Castelão",
      "pontos": 5
     }
-   ]
+   ],
+   "categoria": "Futebol brasileiro",
+   "numero": 43
   },
   {
    "pergunta": "Cite um brasileiro que jogou na Europa",
@@ -1835,7 +2020,9 @@ textarea{resize:vertical;min-height:52px;font-weight:600}
      "texto": "Alisson",
      "pontos": 6
     }
-   ]
+   ],
+   "categoria": "Futebol brasileiro",
+   "numero": 44
   },
   {
    "pergunta": "Cite uma posição do futebol",
@@ -1864,7 +2051,9 @@ textarea{resize:vertical;min-height:52px;font-weight:600}
      "texto": "Volante",
      "pontos": 5
     }
-   ]
+   ],
+   "categoria": "Futebol brasileiro",
+   "numero": 45
   },
   {
    "pergunta": "Sobre o que dois torcedores sempre discutem?",
@@ -1889,7 +2078,9 @@ textarea{resize:vertical;min-height:52px;font-weight:600}
      "texto": "Mundial de clubes",
      "pontos": 15
     }
-   ]
+   ],
+   "categoria": "Futebol brasileiro",
+   "numero": 46
   },
   {
    "pergunta": "Cite algo que todo goleiro faz",
@@ -1918,7 +2109,9 @@ textarea{resize:vertical;min-height:52px;font-weight:600}
      "texto": "Reclama do juiz",
      "pontos": 8
     }
-   ]
+   ],
+   "categoria": "Futebol brasileiro",
+   "numero": 47
   },
   {
    "pergunta": "O que acontece todo ano no Brasileirão?",
@@ -1943,7 +2136,9 @@ textarea{resize:vertical;min-height:52px;font-weight:600}
      "texto": "Artilheiro vendido no meio do ano",
      "pontos": 14
     }
-   ]
+   ],
+   "categoria": "Futebol brasileiro",
+   "numero": 48
   },
   {
    "pergunta": "Cite uma comemoração de gol clássica",
@@ -1968,7 +2163,9 @@ textarea{resize:vertical;min-height:52px;font-weight:600}
      "texto": "Tirar a camisa",
      "pontos": 16
     }
-   ]
+   ],
+   "categoria": "Futebol brasileiro",
+   "numero": 49
   },
   {
    "pergunta": "O que o torcedor faz quando o time perde?",
@@ -1993,7 +2190,9 @@ textarea{resize:vertical;min-height:52px;font-weight:600}
      "texto": "Fica de mau humor o dia todo",
      "pontos": 16
     }
-   ]
+   ],
+   "categoria": "Futebol brasileiro",
+   "numero": 50
   },
   {
    "pergunta": "Cite um clássico do futebol brasileiro",
@@ -2022,7 +2221,9 @@ textarea{resize:vertical;min-height:52px;font-weight:600}
      "texto": "Clássico dos Milhões",
      "pontos": 6
     }
-   ]
+   ],
+   "categoria": "Futebol brasileiro",
+   "numero": 51
   },
   {
    "pergunta": "O que o brasileiro faz em dia de jogo da seleção?",
@@ -2047,7 +2248,9 @@ textarea{resize:vertical;min-height:52px;font-weight:600}
      "texto": "Fecha o comércio mais cedo",
      "pontos": 18
     }
-   ]
+   ],
+   "categoria": "Futebol brasileiro",
+   "numero": 52
   },
   {
    "pergunta": "Cite um clube gigante da Europa",
@@ -2084,7 +2287,9 @@ textarea{resize:vertical;min-height:52px;font-weight:600}
      "texto": "Milan",
      "pontos": 3
     }
-   ]
+   ],
+   "categoria": "Futebol europeu",
+   "numero": 53
   },
   {
    "pergunta": "Cite um jogador que marcou época na Europa",
@@ -2117,7 +2322,9 @@ textarea{resize:vertical;min-height:52px;font-weight:600}
      "texto": "Ronaldo Fenômeno",
      "pontos": 4
     }
-   ]
+   ],
+   "categoria": "Futebol europeu",
+   "numero": 54
   },
   {
    "pergunta": "Cite um campeonato do futebol europeu",
@@ -2146,7 +2353,9 @@ textarea{resize:vertical;min-height:52px;font-weight:600}
      "texto": "Ligue 1",
      "pontos": 5
     }
-   ]
+   ],
+   "categoria": "Futebol europeu",
+   "numero": 55
   },
   {
    "pergunta": "Cite uma seleção europeia forte",
@@ -2175,7 +2384,9 @@ textarea{resize:vertical;min-height:52px;font-weight:600}
      "texto": "Portugal",
      "pontos": 8
     }
-   ]
+   ],
+   "categoria": "Futebol europeu",
+   "numero": 56
   },
   {
    "pergunta": "Cite um estádio europeu famoso",
@@ -2204,7 +2415,9 @@ textarea{resize:vertical;min-height:52px;font-weight:600}
      "texto": "San Siro",
      "pontos": 6
     }
-   ]
+   ],
+   "categoria": "Futebol europeu",
+   "numero": 57
   },
   {
    "pergunta": "Cite algo típico do futebol inglês",
@@ -2229,7 +2442,9 @@ textarea{resize:vertical;min-height:52px;font-weight:600}
      "texto": "Gramado impecável",
      "pontos": 14
     }
-   ]
+   ],
+   "categoria": "Futebol europeu",
+   "numero": 58
   },
   {
    "pergunta": "Cite um clássico do futebol europeu",
@@ -2254,7 +2469,9 @@ textarea{resize:vertical;min-height:52px;font-weight:600}
      "texto": "Bayern x Dortmund",
      "pontos": 14
     }
-   ]
+   ],
+   "categoria": "Futebol europeu",
+   "numero": 59
   },
   {
    "pergunta": "Cite um técnico europeu famoso",
@@ -2279,7 +2496,9 @@ textarea{resize:vertical;min-height:52px;font-weight:600}
      "texto": "Alex Ferguson",
      "pontos": 10
     }
-   ]
+   ],
+   "categoria": "Futebol europeu",
+   "numero": 60
   },
   {
    "pergunta": "Cite um brasileiro que brilhou na Europa",
@@ -2308,7 +2527,9 @@ textarea{resize:vertical;min-height:52px;font-weight:600}
      "texto": "Roberto Carlos",
      "pontos": 8
     }
-   ]
+   ],
+   "categoria": "Futebol europeu",
+   "numero": 61
   },
   {
    "pergunta": "Cite um uniforme icônico do futebol europeu",
@@ -2333,7 +2554,9 @@ textarea{resize:vertical;min-height:52px;font-weight:600}
      "texto": "Vermelho e preto do Milan",
      "pontos": 10
     }
-   ]
+   ],
+   "categoria": "Futebol europeu",
+   "numero": 62
   },
   {
    "pergunta": "O que sempre acontece numa final de Champions?",
@@ -2358,7 +2581,9 @@ textarea{resize:vertical;min-height:52px;font-weight:600}
      "texto": "Jogador chorando no fim",
      "pontos": 16
     }
-   ]
+   ],
+   "categoria": "Futebol europeu",
+   "numero": 63
   },
   {
    "pergunta": "Cite uma seleção europeia campeã do mundo",
@@ -2383,7 +2608,9 @@ textarea{resize:vertical;min-height:52px;font-weight:600}
      "texto": "Inglaterra",
      "pontos": 6
     }
-   ]
+   ],
+   "categoria": "Futebol europeu",
+   "numero": 64
   },
   {
    "pergunta": "O que o torcedor europeu faz diferente do brasileiro?",
@@ -2408,7 +2635,9 @@ textarea{resize:vertical;min-height:52px;font-weight:600}
      "texto": "Levanta o cachecol do time",
      "pontos": 14
     }
-   ]
+   ],
+   "categoria": "Futebol europeu",
+   "numero": 65
   },
   {
    "pergunta": "Cite um apelido de clube europeu",
@@ -2433,7 +2662,9 @@ textarea{resize:vertical;min-height:52px;font-weight:600}
      "texto": "Velha Senhora",
      "pontos": 16
     }
-   ]
+   ],
+   "categoria": "Futebol europeu",
+   "numero": 66
   },
   {
    "pergunta": "Cite uma transferência que causou revolta na torcida",
@@ -2458,7 +2689,9 @@ textarea{resize:vertical;min-height:52px;font-weight:600}
      "texto": "Ibrahimovic trocando de rival",
      "pontos": 8
     }
-   ]
+   ],
+   "categoria": "Futebol europeu",
+   "numero": 67
   },
   {
    "pergunta": "Cite uma atriz de Hollywood que todo mundo acha linda",
@@ -2491,7 +2724,9 @@ textarea{resize:vertical;min-height:52px;font-weight:600}
      "texto": "Gal Gadot",
      "pontos": 6
     }
-   ]
+   ],
+   "categoria": "Atrizes de Hollywood",
+   "numero": 68
   },
   {
    "pergunta": "Cite uma atriz que era o símbolo de beleza dos anos 2000",
@@ -2520,7 +2755,9 @@ textarea{resize:vertical;min-height:52px;font-weight:600}
      "texto": "Pamela Anderson",
      "pontos": 10
     }
-   ]
+   ],
+   "categoria": "Atrizes de Hollywood",
+   "numero": 69
   },
   {
    "pergunta": "Cite uma atriz de filme de super-herói",
@@ -2549,7 +2786,9 @@ textarea{resize:vertical;min-height:52px;font-weight:600}
      "texto": "Brie Larson",
      "pontos": 6
     }
-   ]
+   ],
+   "categoria": "Atrizes de Hollywood",
+   "numero": 70
   },
   {
    "pergunta": "Cite uma atriz loira famosa",
@@ -2578,7 +2817,9 @@ textarea{resize:vertical;min-height:52px;font-weight:600}
      "texto": "Blake Lively",
      "pontos": 10
     }
-   ]
+   ],
+   "categoria": "Atrizes de Hollywood",
+   "numero": 71
   },
   {
    "pergunta": "Cite uma atriz que não envelhece",
@@ -2607,7 +2848,9 @@ textarea{resize:vertical;min-height:52px;font-weight:600}
      "texto": "Salma Hayek",
      "pontos": 10
     }
-   ]
+   ],
+   "categoria": "Atrizes de Hollywood",
+   "numero": 72
   },
   {
    "pergunta": "Cite uma rainha das comédias românticas",
@@ -2636,7 +2879,9 @@ textarea{resize:vertical;min-height:52px;font-weight:600}
      "texto": "Anne Hathaway",
      "pontos": 6
     }
-   ]
+   ],
+   "categoria": "Atrizes de Hollywood",
+   "numero": 73
   },
   {
    "pergunta": "Cite uma atriz latina que estourou em Hollywood",
@@ -2661,7 +2906,9 @@ textarea{resize:vertical;min-height:52px;font-weight:600}
      "texto": "Eva Mendes",
      "pontos": 10
     }
-   ]
+   ],
+   "categoria": "Atrizes de Hollywood",
+   "numero": 74
   },
   {
    "pergunta": "Cite uma atriz que é linda e ainda ganhou Oscar",
@@ -2690,7 +2937,9 @@ textarea{resize:vertical;min-height:52px;font-weight:600}
      "texto": "Emma Stone",
      "pontos": 8
     }
-   ]
+   ],
+   "categoria": "Atrizes de Hollywood",
+   "numero": 75
   },
   {
    "pergunta": "Cite uma atriz que ficou famosa numa série",
@@ -2719,7 +2968,9 @@ textarea{resize:vertical;min-height:52px;font-weight:600}
      "texto": "Kaley Cuoco",
      "pontos": 10
     }
-   ]
+   ],
+   "categoria": "Atrizes de Hollywood",
+   "numero": 76
   },
   {
    "pergunta": "Cite uma atriz que todo mundo chama pelo primeiro nome",
@@ -2748,7 +2999,9 @@ textarea{resize:vertical;min-height:52px;font-weight:600}
      "texto": "Jennifer",
      "pontos": 8
     }
-   ]
+   ],
+   "categoria": "Atrizes de Hollywood",
+   "numero": 77
   },
   {
    "pergunta": "Cite um astro de filme de ação",
@@ -2781,7 +3034,9 @@ textarea{resize:vertical;min-height:52px;font-weight:600}
      "texto": "Dwayne Johnson",
      "pontos": 6
     }
-   ]
+   ],
+   "categoria": "Atores de ação",
+   "numero": 78
   },
   {
    "pergunta": "Cite um ator conhecido por saber lutar",
@@ -2810,7 +3065,9 @@ textarea{resize:vertical;min-height:52px;font-weight:600}
      "texto": "Steven Seagal",
      "pontos": 6
     }
-   ]
+   ],
+   "categoria": "Atores de ação",
+   "numero": 79
   },
   {
    "pergunta": "Cite um personagem de ação inesquecível",
@@ -2839,7 +3096,9 @@ textarea{resize:vertical;min-height:52px;font-weight:600}
      "texto": "Ethan Hunt",
      "pontos": 6
     }
-   ]
+   ],
+   "categoria": "Atores de ação",
+   "numero": 80
   },
   {
    "pergunta": "Cite um ator que faz as próprias cenas de risco",
@@ -2864,7 +3123,9 @@ textarea{resize:vertical;min-height:52px;font-weight:600}
      "texto": "Jason Statham",
      "pontos": 8
     }
-   ]
+   ],
+   "categoria": "Atores de ação",
+   "numero": 81
   },
   {
    "pergunta": "Cite um ator de ação que virou meme",
@@ -2889,7 +3150,9 @@ textarea{resize:vertical;min-height:52px;font-weight:600}
      "texto": "Arnold Schwarzenegger",
      "pontos": 8
     }
-   ]
+   ],
+   "categoria": "Atores de ação",
+   "numero": 82
   },
   {
    "pergunta": "Cite um ator de Velozes e Furiosos",
@@ -2914,7 +3177,9 @@ textarea{resize:vertical;min-height:52px;font-weight:600}
      "texto": "Michelle Rodriguez",
      "pontos": 6
     }
-   ]
+   ],
+   "categoria": "Atores de ação",
+   "numero": 83
   },
   {
    "pergunta": "O que sempre acontece em filme de ação?",
@@ -2939,7 +3204,9 @@ textarea{resize:vertical;min-height:52px;font-weight:600}
      "texto": "Prédio inteiro pelos ares",
      "pontos": 14
     }
-   ]
+   ],
+   "categoria": "Atores de ação",
+   "numero": 84
   },
   {
    "pergunta": "Cite um ator que já fez papel de espião",
@@ -2964,7 +3231,9 @@ textarea{resize:vertical;min-height:52px;font-weight:600}
      "texto": "Matt Damon",
      "pontos": 10
     }
-   ]
+   ],
+   "categoria": "Atores de ação",
+   "numero": 85
   },
   {
    "pergunta": "Cite um ator que era lutador ou fisiculturista",
@@ -2989,7 +3258,9 @@ textarea{resize:vertical;min-height:52px;font-weight:600}
      "texto": "Jason Statham",
      "pontos": 4
     }
-   ]
+   ],
+   "categoria": "Atores de ação",
+   "numero": 86
   },
   {
    "pergunta": "Cite um ator veterano que ainda faz filme de ação",
@@ -3018,7 +3289,9 @@ textarea{resize:vertical;min-height:52px;font-weight:600}
      "texto": "Harrison Ford",
      "pontos": 6
     }
-   ]
+   ],
+   "categoria": "Atores de ação",
+   "numero": 87
   },
   {
    "pergunta": "Cite uma série que todo mundo assistiu",
@@ -3047,7 +3320,9 @@ textarea{resize:vertical;min-height:52px;font-weight:600}
      "texto": "The Office",
      "pontos": 12
     }
-   ]
+   ],
+   "categoria": "Séries",
+   "numero": 88
   },
   {
    "pergunta": "Cite uma série da Netflix",
@@ -3076,7 +3351,9 @@ textarea{resize:vertical;min-height:52px;font-weight:600}
      "texto": "Narcos",
      "pontos": 8
     }
-   ]
+   ],
+   "categoria": "Séries",
+   "numero": 89
   },
   {
    "pergunta": "Cite uma série de comédia",
@@ -3105,7 +3382,9 @@ textarea{resize:vertical;min-height:52px;font-weight:600}
      "texto": "Todo Mundo Odeia o Chris",
      "pontos": 6
     }
-   ]
+   ],
+   "categoria": "Séries",
+   "numero": 90
   },
   {
    "pergunta": "Cite uma série com final polêmico",
@@ -3130,7 +3409,9 @@ textarea{resize:vertical;min-height:52px;font-weight:600}
      "texto": "Supernatural",
      "pontos": 6
     }
-   ]
+   ],
+   "categoria": "Séries",
+   "numero": 91
   },
   {
    "pergunta": "Cite um personagem de série inesquecível",
@@ -3159,7 +3440,9 @@ textarea{resize:vertical;min-height:52px;font-weight:600}
      "texto": "O Professor",
      "pontos": 14
     }
-   ]
+   ],
+   "categoria": "Séries",
+   "numero": 92
   },
   {
    "pergunta": "Cite uma série de hospital",
@@ -3184,7 +3467,9 @@ textarea{resize:vertical;min-height:52px;font-weight:600}
      "texto": "Chicago Med",
      "pontos": 4
     }
-   ]
+   ],
+   "categoria": "Séries",
+   "numero": 93
   },
   {
    "pergunta": "Cite uma série antiga que marcou a sua infância",
@@ -3217,7 +3502,9 @@ textarea{resize:vertical;min-height:52px;font-weight:600}
      "texto": "Arquivo X",
      "pontos": 8
     }
-   ]
+   ],
+   "categoria": "Séries",
+   "numero": 94
   },
   {
    "pergunta": "O que toda série faz com o espectador?",
@@ -3242,7 +3529,9 @@ textarea{resize:vertical;min-height:52px;font-weight:600}
      "texto": "Traz personagem morto de volta",
      "pontos": 12
     }
-   ]
+   ],
+   "categoria": "Séries",
+   "numero": 95
   },
   {
    "pergunta": "Cite uma série de crime ou investigação",
@@ -3271,7 +3560,9 @@ textarea{resize:vertical;min-height:52px;font-weight:600}
      "texto": "Mindhunter",
      "pontos": 10
     }
-   ]
+   ],
+   "categoria": "Séries",
+   "numero": 96
   },
   {
    "pergunta": "Cite uma série que dá para maratonar num fim de semana",
@@ -3300,7 +3591,9 @@ textarea{resize:vertical;min-height:52px;font-weight:600}
      "texto": "Dark",
      "pontos": 8
     }
-   ]
+   ],
+   "categoria": "Séries",
+   "numero": 97
   },
   {
    "pergunta": "Cite uma atriz adulta que ficou conhecida até fora do meio",
@@ -3329,7 +3622,9 @@ textarea{resize:vertical;min-height:52px;font-weight:600}
      "texto": "Lisa Ann",
      "pontos": 6
     }
-   ]
+   ],
+   "categoria": "Adulto",
+   "numero": 98
   },
   {
    "pergunta": "Cite um ator adulto famoso",
@@ -3358,7 +3653,9 @@ textarea{resize:vertical;min-height:52px;font-weight:600}
      "texto": "Keiran Lee",
      "pontos": 6
     }
-   ]
+   ],
+   "categoria": "Adulto",
+   "numero": 99
   },
   {
    "pergunta": "Cite uma profissão que o Johnny Sins já interpretou",
@@ -3387,7 +3684,9 @@ textarea{resize:vertical;min-height:52px;font-weight:600}
      "texto": "Policial",
      "pontos": 8
     }
-   ]
+   ],
+   "categoria": "Adulto",
+   "numero": 100
   },
   {
    "pergunta": "Cite um clichê de roteiro desse tipo de filme",
@@ -3416,7 +3715,9 @@ textarea{resize:vertical;min-height:52px;font-weight:600}
      "texto": "A vizinha pedindo ajuda",
      "pontos": 8
     }
-   ]
+   ],
+   "categoria": "Adulto",
+   "numero": 101
   },
   {
    "pergunta": "Cite um site ou estúdio famoso do ramo",
@@ -3441,7 +3742,9 @@ textarea{resize:vertical;min-height:52px;font-weight:600}
      "texto": "Naughty America",
      "pontos": 4
     }
-   ]
+   ],
+   "categoria": "Adulto",
+   "numero": 102
   },
   {
    "pergunta": "Cite uma atriz adulta que virou celebridade nas redes",
@@ -3470,7 +3773,9 @@ textarea{resize:vertical;min-height:52px;font-weight:600}
      "texto": "Asa Akira",
      "pontos": 6
     }
-   ]
+   ],
+   "categoria": "Adulto",
+   "numero": 103
   },
   {
    "pergunta": "O que todo filme desse tipo tem?",
@@ -3495,7 +3800,9 @@ textarea{resize:vertical;min-height:52px;font-weight:600}
      "texto": "Cenário caseiro esquisito",
      "pontos": 10
     }
-   ]
+   ],
+   "categoria": "Adulto",
+   "numero": 104
   },
   {
    "pergunta": "Cite alguém que largou o ramo e virou outra coisa",
@@ -3516,7 +3823,9 @@ textarea{resize:vertical;min-height:52px;font-weight:600}
      "texto": "Jenna Jameson",
      "pontos": 16
     }
-   ]
+   ],
+   "categoria": "Adulto",
+   "numero": 105
   },
   {
    "pergunta": "O que denuncia que o vídeo é dos anos 80?",
@@ -3541,7 +3850,9 @@ textarea{resize:vertical;min-height:52px;font-weight:600}
      "texto": "Móveis marrons e papel de parede",
      "pontos": 12
     }
-   ]
+   ],
+   "categoria": "Adulto",
+   "numero": 106
   },
   {
    "pergunta": "Cite um país conhecido por astros desse ramo",
@@ -3566,7 +3877,9 @@ textarea{resize:vertical;min-height:52px;font-weight:600}
      "texto": "Itália",
      "pontos": 12
     }
-   ]
+   ],
+   "categoria": "Adulto",
+   "numero": 107
   },
   {
    "pergunta": "Cite uma estrela dos anos 90 ou 2000",
@@ -3591,7 +3904,9 @@ textarea{resize:vertical;min-height:52px;font-weight:600}
      "texto": "Tera Patrick",
      "pontos": 8
     }
-   ]
+   ],
+   "categoria": "Adulto",
+   "numero": 108
   },
   {
    "pergunta": "Cite a desculpa de quem foi pego com a aba aberta",
@@ -3616,7 +3931,9 @@ textarea{resize:vertical;min-height:52px;font-weight:600}
      "texto": "Esse computador não é meu",
      "pontos": 12
     }
-   ]
+   ],
+   "categoria": "Adulto",
+   "numero": 109
   },
   {
    "pergunta": "Cite um nome artístico bem chamativo do ramo",
@@ -3641,7 +3958,9 @@ textarea{resize:vertical;min-height:52px;font-weight:600}
      "texto": "Tera Patrick",
      "pontos": 12
     }
-   ]
+   ],
+   "categoria": "Adulto",
+   "numero": 110
   },
   {
    "pergunta": "O que a Mia Khalifa faz hoje?",
@@ -3666,7 +3985,9 @@ textarea{resize:vertical;min-height:52px;font-weight:600}
      "texto": "Apresenta podcast",
      "pontos": 10
     }
-   ]
+   ],
+   "categoria": "Adulto",
+   "numero": 111
   },
   {
    "pergunta": "Como reconhecer um veterano do ramo?",
@@ -3691,7 +4012,9 @@ textarea{resize:vertical;min-height:52px;font-weight:600}
      "texto": "Cabelo grisalho",
      "pontos": 10
     }
-   ]
+   ],
+   "categoria": "Adulto",
+   "numero": 112
   },
   {
    "pergunta": "Cite um jogo que marcou a sua infância",
@@ -3724,7 +4047,9 @@ textarea{resize:vertical;min-height:52px;font-weight:600}
      "texto": "Super Mario",
      "pontos": 8
     }
-   ]
+   ],
+   "categoria": "Nostalgia dos anos 2000",
+   "numero": 113
   },
   {
    "pergunta": "Cite um videogame clássico",
@@ -3753,7 +4078,9 @@ textarea{resize:vertical;min-height:52px;font-weight:600}
      "texto": "Xbox 360",
      "pontos": 10
     }
-   ]
+   ],
+   "categoria": "Nostalgia dos anos 2000",
+   "numero": 114
   },
   {
    "pergunta": "Cite um site em que a gente vivia nos anos 2000",
@@ -3782,7 +4109,9 @@ textarea{resize:vertical;min-height:52px;font-weight:600}
      "texto": "Google",
      "pontos": 8
     }
-   ]
+   ],
+   "categoria": "Nostalgia dos anos 2000",
+   "numero": 115
   },
   {
    "pergunta": "Cite algo que só quem usou MSN entende",
@@ -3807,7 +4136,9 @@ textarea{resize:vertical;min-height:52px;font-weight:600}
      "texto": "Bloquear só para ver se estava online",
      "pontos": 14
     }
-   ]
+   ],
+   "categoria": "Nostalgia dos anos 2000",
+   "numero": 116
   },
   {
    "pergunta": "Cite um desenho do Cartoon Network",
@@ -3836,7 +4167,9 @@ textarea{resize:vertical;min-height:52px;font-weight:600}
      "texto": "Samurai Jack",
      "pontos": 10
     }
-   ]
+   ],
+   "categoria": "Nostalgia dos anos 2000",
+   "numero": 117
   },
   {
    "pergunta": "Cite um desenho que passava antes da escola",
@@ -3865,7 +4198,9 @@ textarea{resize:vertical;min-height:52px;font-weight:600}
      "texto": "Yu-Gi-Oh!",
      "pontos": 6
     }
-   ]
+   ],
+   "categoria": "Nostalgia dos anos 2000",
+   "numero": 118
   },
   {
    "pergunta": "Cite algo que todo moleque levava para a escola",
@@ -3894,7 +4229,9 @@ textarea{resize:vertical;min-height:52px;font-weight:600}
      "texto": "Tampinha de bafo",
      "pontos": 8
     }
-   ]
+   ],
+   "categoria": "Nostalgia dos anos 2000",
+   "numero": 119
   },
   {
    "pergunta": "Cite a marca de tênis que era status na adolescência",
@@ -3923,7 +4260,9 @@ textarea{resize:vertical;min-height:52px;font-weight:600}
      "texto": "All Star",
      "pontos": 8
     }
-   ]
+   ],
+   "categoria": "Nostalgia dos anos 2000",
+   "numero": 120
   },
   {
    "pergunta": "Cite um filme que você já viu umas mil vezes",
@@ -3952,7 +4291,9 @@ textarea{resize:vertical;min-height:52px;font-weight:600}
      "texto": "Gladiador",
      "pontos": 10
     }
-   ]
+   ],
+   "categoria": "Nostalgia dos anos 2000",
+   "numero": 121
   },
   {
    "pergunta": "Cite algo que só existia na LAN house",
@@ -3977,7 +4318,9 @@ textarea{resize:vertical;min-height:52px;font-weight:600}
      "texto": "Fila pelo computador bom",
      "pontos": 14
     }
-   ]
+   ],
+   "categoria": "Nostalgia dos anos 2000",
+   "numero": 122
   },
   {
    "pergunta": "Cite um meme brasileiro que nunca morre",
@@ -4002,7 +4345,9 @@ textarea{resize:vertical;min-height:52px;font-weight:600}
      "texto": "Chris levando bronca",
      "pontos": 12
     }
-   ]
+   ],
+   "categoria": "Nostalgia dos anos 2000",
+   "numero": 123
   },
   {
    "pergunta": "Cite o artista que não pode faltar no churrasco",
@@ -4031,7 +4376,9 @@ textarea{resize:vertical;min-height:52px;font-weight:600}
      "texto": "Racionais",
      "pontos": 12
     }
-   ]
+   ],
+   "categoria": "Nostalgia dos anos 2000",
+   "numero": 124
   },
   {
    "pergunta": "Cite algo que a gente fazia antes do celular ter internet",
@@ -4056,7 +4403,9 @@ textarea{resize:vertical;min-height:52px;font-weight:600}
      "texto": "Ligar do orelhão",
      "pontos": 14
     }
-   ]
+   ],
+   "categoria": "Nostalgia dos anos 2000",
+   "numero": 125
   },
   {
    "pergunta": "Cite algo que todo homem de 30 anos já disse",
@@ -4081,7 +4430,9 @@ textarea{resize:vertical;min-height:52px;font-weight:600}
      "texto": "No meu tempo era melhor",
      "pontos": 14
     }
-   ]
+   ],
+   "categoria": "Nostalgia dos anos 2000",
+   "numero": 126
   },
   {
    "pergunta": "Cite um programa de TV que você via depois da escola",
@@ -4106,7 +4457,9 @@ textarea{resize:vertical;min-height:52px;font-weight:600}
      "texto": "Programa do Ratinho",
      "pontos": 18
     }
-   ]
+   ],
+   "categoria": "Nostalgia dos anos 2000",
+   "numero": 127
   },
   {
    "pergunta": "Cite um jogo online que todo mundo já jogou",
@@ -4139,7 +4492,9 @@ textarea{resize:vertical;min-height:52px;font-weight:600}
      "texto": "Valorant",
      "pontos": 5
     }
-   ]
+   ],
+   "categoria": "Games",
+   "numero": 128
   },
   {
    "pergunta": "Cite um campeão de League of Legends",
@@ -4172,7 +4527,9 @@ textarea{resize:vertical;min-height:52px;font-weight:600}
      "texto": "Zed",
      "pontos": 8
     }
-   ]
+   ],
+   "categoria": "Games",
+   "numero": 129
   },
   {
    "pergunta": "O que acontece em toda partida de LoL?",
@@ -4197,7 +4554,9 @@ textarea{resize:vertical;min-height:52px;font-weight:600}
      "texto": "Partida que não acaba nunca",
      "pontos": 14
     }
-   ]
+   ],
+   "categoria": "Games",
+   "numero": 130
   },
   {
    "pergunta": "Cite um mapa do Counter-Strike",
@@ -4226,7 +4585,9 @@ textarea{resize:vertical;min-height:52px;font-weight:600}
      "texto": "Office",
      "pontos": 6
     }
-   ]
+   ],
+   "categoria": "Games",
+   "numero": 131
   },
   {
    "pergunta": "Cite uma arma do Counter-Strike",
@@ -4255,7 +4616,9 @@ textarea{resize:vertical;min-height:52px;font-weight:600}
      "texto": "Glock",
      "pontos": 4
     }
-   ]
+   ],
+   "categoria": "Games",
+   "numero": 132
   },
   {
    "pergunta": "Cite um vexame clássico do Counter-Strike",
@@ -4280,7 +4643,9 @@ textarea{resize:vertical;min-height:52px;font-weight:600}
      "texto": "Cair do mapa sozinho",
      "pontos": 12
     }
-   ]
+   ],
+   "categoria": "Games",
+   "numero": 133
   },
   {
    "pergunta": "Cite algo que dá para fazer no GTA",
@@ -4305,7 +4670,9 @@ textarea{resize:vertical;min-height:52px;font-weight:600}
      "texto": "Fazer as missões",
      "pontos": 12
     }
-   ]
+   ],
+   "categoria": "Games",
+   "numero": 134
   },
   {
    "pergunta": "Cite uma trapaça clássica de GTA",
@@ -4330,7 +4697,9 @@ textarea{resize:vertical;min-height:52px;font-weight:600}
      "texto": "Pedestres brigando na rua",
      "pontos": 12
     }
-   ]
+   ],
+   "categoria": "Games",
+   "numero": 135
   },
   {
    "pergunta": "Cite um personagem de GTA",
@@ -4355,7 +4724,9 @@ textarea{resize:vertical;min-height:52px;font-weight:600}
      "texto": "Niko Bellic",
      "pontos": 10
     }
-   ]
+   ],
+   "categoria": "Games",
+   "numero": 136
   },
   {
    "pergunta": "Cite um jogo de tiro famoso",
@@ -4384,7 +4755,9 @@ textarea{resize:vertical;min-height:52px;font-weight:600}
      "texto": "Fortnite",
      "pontos": 8
     }
-   ]
+   ],
+   "categoria": "Games",
+   "numero": 137
   },
   {
    "pergunta": "Cite um jogo que virou febre no celular",
@@ -4413,7 +4786,9 @@ textarea{resize:vertical;min-height:52px;font-weight:600}
      "texto": "Angry Birds",
      "pontos": 8
     }
-   ]
+   ],
+   "categoria": "Games",
+   "numero": 138
   },
   {
    "pergunta": "Cite um jogo de futebol",
@@ -4438,7 +4813,9 @@ textarea{resize:vertical;min-height:52px;font-weight:600}
      "texto": "Football Manager",
      "pontos": 4
     }
-   ]
+   ],
+   "categoria": "Games",
+   "numero": 139
   },
   {
    "pergunta": "Cite a desculpa de quem está perdendo",
@@ -4463,7 +4840,9 @@ textarea{resize:vertical;min-height:52px;font-weight:600}
      "texto": "Não estava jogando sério",
      "pontos": 14
     }
-   ]
+   ],
+   "categoria": "Games",
+   "numero": 140
   },
   {
    "pergunta": "O que denuncia um viciado em jogo?",
@@ -4488,7 +4867,9 @@ textarea{resize:vertical;min-height:52px;font-weight:600}
      "texto": "Vira a noite e vai trabalhar",
      "pontos": 16
     }
-   ]
+   ],
+   "categoria": "Games",
+   "numero": 141
   },
   {
    "pergunta": "Cite um jogo de mundo aberto",
@@ -4517,7 +4898,9 @@ textarea{resize:vertical;min-height:52px;font-weight:600}
      "texto": "Zelda",
      "pontos": 6
     }
-   ]
+   ],
+   "categoria": "Games",
+   "numero": 142
   },
   {
    "pergunta": "Cite um jogo que dá raiva",
@@ -4546,7 +4929,9 @@ textarea{resize:vertical;min-height:52px;font-weight:600}
      "texto": "Flappy Bird",
      "pontos": 12
     }
-   ]
+   ],
+   "categoria": "Games",
+   "numero": 143
   },
   {
    "pergunta": "Cite um jogo de luta",
@@ -4571,7 +4956,9 @@ textarea{resize:vertical;min-height:52px;font-weight:600}
      "texto": "The King of Fighters",
      "pontos": 8
     }
-   ]
+   ],
+   "categoria": "Games",
+   "numero": 144
   },
   {
    "pergunta": "Cite um jogo de terror",
@@ -4600,7 +4987,9 @@ textarea{resize:vertical;min-height:52px;font-weight:600}
      "texto": "Amnesia",
      "pontos": 6
     }
-   ]
+   ],
+   "categoria": "Games",
+   "numero": 145
   },
   {
    "pergunta": "Cite o tipo de amigo que todo grupo tem no jogo",
@@ -4625,7 +5014,9 @@ textarea{resize:vertical;min-height:52px;font-weight:600}
      "texto": "O que xinga do início ao fim",
      "pontos": 18
     }
-   ]
+   ],
+   "categoria": "Games",
+   "numero": 146
   },
   {
    "pergunta": "Cite um jogo que você começou e nunca terminou",
@@ -4654,7 +5045,9 @@ textarea{resize:vertical;min-height:52px;font-weight:600}
      "texto": "Elden Ring",
      "pontos": 12
     }
-   ]
+   ],
+   "categoria": "Games",
+   "numero": 147
   },
   {
    "pergunta": "Cite uma marca de carro popular no Brasil",
@@ -4683,7 +5076,9 @@ textarea{resize:vertical;min-height:52px;font-weight:600}
      "texto": "Honda",
      "pontos": 10
     }
-   ]
+   ],
+   "categoria": "Carros",
+   "numero": 148
   },
   {
    "pergunta": "Cite o carro dos sonhos de qualquer um",
@@ -4712,7 +5107,9 @@ textarea{resize:vertical;min-height:52px;font-weight:600}
      "texto": "Camaro",
      "pontos": 6
     }
-   ]
+   ],
+   "categoria": "Carros",
+   "numero": 149
   },
   {
    "pergunta": "Cite algo que todo motorista já fez no trânsito",
@@ -4737,7 +5134,9 @@ textarea{resize:vertical;min-height:52px;font-weight:600}
      "texto": "Fechar alguém sem querer",
      "pontos": 18
     }
-   ]
+   ],
+   "categoria": "Carros",
+   "numero": 150
   },
   {
    "pergunta": "Cite o carro do primeiro carro de muita gente",
@@ -4766,7 +5165,9 @@ textarea{resize:vertical;min-height:52px;font-weight:600}
      "texto": "Fusca",
      "pontos": 8
     }
-   ]
+   ],
+   "categoria": "Carros",
+   "numero": 151
   },
   {
    "pergunta": "O que todo carro velho tem?",
@@ -4791,7 +5192,9 @@ textarea{resize:vertical;min-height:52px;font-weight:600}
      "texto": "Ferrugem escondida",
      "pontos": 16
     }
-   ]
+   ],
+   "categoria": "Carros",
+   "numero": 152
   },
   {
    "pergunta": "Cite uma desculpa clássica pra chegar atrasado no trânsito",
@@ -4816,7 +5219,9 @@ textarea{resize:vertical;min-height:52px;font-weight:600}
      "texto": "O carro não pegava",
      "pontos": 12
     }
-   ]
+   ],
+   "categoria": "Carros",
+   "numero": 153
   },
   {
    "pergunta": "Cite algo que todo mundo guarda no porta-luvas",
@@ -4841,7 +5246,9 @@ textarea{resize:vertical;min-height:52px;font-weight:600}
      "texto": "Bala ou chiclete",
      "pontos": 16
     }
-   ]
+   ],
+   "categoria": "Carros",
+   "numero": 154
   },
   {
    "pergunta": "Cite uma modificação que todo mundo já quis fazer no carro",
@@ -4866,7 +5273,9 @@ textarea{resize:vertical;min-height:52px;font-weight:600}
      "texto": "Escapamento esportivo",
      "pontos": 12
     }
-   ]
+   ],
+   "categoria": "Carros",
+   "numero": 155
   },
   {
    "pergunta": "Cite um carro que aparece em filme de perseguição",
@@ -4891,7 +5300,9 @@ textarea{resize:vertical;min-height:52px;font-weight:600}
      "texto": "Ferrari",
      "pontos": 16
     }
-   ]
+   ],
+   "categoria": "Carros",
+   "numero": 156
   },
   {
    "pergunta": "O que todo passageiro reclama do motorista?",
@@ -4916,36 +5327,40 @@ textarea{resize:vertical;min-height:52px;font-weight:600}
      "texto": "Ouve a música muito alta",
      "pontos": 14
     }
-   ]
+   ],
+   "categoria": "Carros",
+   "numero": 157
   },
   {
    "pergunta": "Cite um xingamento clássico de trânsito",
    "respostas": [
     {
-     "texto": "Idiota",
+     "texto": "Vai tomar no cu",
      "pontos": 26
     },
     {
-     "texto": "Burro",
+     "texto": "Filho da puta",
      "pontos": 22
     },
     {
-     "texto": "Otário",
+     "texto": "Desgraçado",
      "pontos": 18
     },
     {
-     "texto": "Trouxa",
+     "texto": "Arrombado",
      "pontos": 16
     },
     {
-     "texto": "Palhaço",
+     "texto": "Corno",
      "pontos": 10
     },
     {
-     "texto": "Cego",
+     "texto": "Otário",
      "pontos": 8
     }
-   ]
+   ],
+   "categoria": "Xingamentos",
+   "numero": 158
   },
   {
    "pergunta": "Cite algo que a mãe grita quando fica brava",
@@ -4955,11 +5370,11 @@ textarea{resize:vertical;min-height:52px;font-weight:600}
      "pontos": 26
     },
     {
-     "texto": "Moleque",
+     "texto": "Desgraçado",
      "pontos": 22
     },
     {
-     "texto": "Ingrato",
+     "texto": "Moleque do caralho",
      "pontos": 18
     },
     {
@@ -4967,35 +5382,39 @@ textarea{resize:vertical;min-height:52px;font-weight:600}
      "pontos": 18
     },
     {
-     "texto": "Capeta",
+     "texto": "Cambada de vagabundo",
      "pontos": 16
     }
-   ]
+   ],
+   "categoria": "Xingamentos",
+   "numero": 159
   },
   {
    "pergunta": "Cite um apelido ofensivo de time de futebol rival",
    "respostas": [
     {
      "texto": "Zebra",
-     "pontos": 24
-    },
-    {
-     "texto": "Time pequeno",
      "pontos": 22
     },
     {
-     "texto": "Fominha",
+     "texto": "Bando de otário",
+     "pontos": 20
+    },
+    {
+     "texto": "Fominha do caralho",
      "pontos": 20
     },
     {
      "texto": "Bagrinho",
-     "pontos": 18
+     "pontos": 20
     },
     {
-     "texto": "Rebaixado",
-     "pontos": 16
+     "texto": "Cambada de derrotado",
+     "pontos": 18
     }
-   ]
+   ],
+   "categoria": "Xingamentos",
+   "numero": 160
   },
   {
    "pergunta": "Cite um xingamento leve entre amigos",
@@ -5009,7 +5428,7 @@ textarea{resize:vertical;min-height:52px;font-weight:600}
      "pontos": 22
     },
     {
-     "texto": "Burro",
+     "texto": "Corno",
      "pontos": 18
     },
     {
@@ -5017,20 +5436,22 @@ textarea{resize:vertical;min-height:52px;font-weight:600}
      "pontos": 18
     },
     {
-     "texto": "Lerdo",
+     "texto": "Otário",
      "pontos": 18
     }
-   ]
+   ],
+   "categoria": "Xingamentos",
+   "numero": 161
   },
   {
    "pergunta": "Cite um jeito de chamar alguém de preguiçoso",
    "respostas": [
     {
-     "texto": "Molenga",
+     "texto": "Vagabundo",
      "pontos": 26
     },
     {
-     "texto": "Vagabundo",
+     "texto": "Molenga do caralho",
      "pontos": 22
     },
     {
@@ -5038,28 +5459,30 @@ textarea{resize:vertical;min-height:52px;font-weight:600}
      "pontos": 20
     },
     {
-     "texto": "Mole",
+     "texto": "Fresco",
      "pontos": 18
     },
     {
      "texto": "Trambolho",
      "pontos": 14
     }
-   ]
+   ],
+   "categoria": "Xingamentos",
+   "numero": 162
   },
   {
    "pergunta": "Cite um xingamento gritado num jogo de futebol",
    "respostas": [
     {
-     "texto": "Vai pentelhar a mãe!",
-     "pontos": 24
+     "texto": "Vai tomar no cu, juiz!",
+     "pontos": 26
     },
     {
-     "texto": "Burro!",
+     "texto": "Filho da puta!",
      "pontos": 22
     },
     {
-     "texto": "Vergonha!",
+     "texto": "Vergonha, porra!",
      "pontos": 20
     },
     {
@@ -5067,10 +5490,12 @@ textarea{resize:vertical;min-height:52px;font-weight:600}
      "pontos": 18
     },
     {
-     "texto": "Vai treinar!",
-     "pontos": 16
+     "texto": "Vai se foder!",
+     "pontos": 14
     }
-   ]
+   ],
+   "categoria": "Xingamentos",
+   "numero": 163
   },
   {
    "pergunta": "Cite uma forma educada de xingar sem xingar",
@@ -5095,7 +5520,9 @@ textarea{resize:vertical;min-height:52px;font-weight:600}
      "texto": "Puxa vida",
      "pontos": 12
     }
-   ]
+   ],
+   "categoria": "Xingamentos",
+   "numero": 164
   },
   {
    "pergunta": "Cite um xingamento que a vó usava",
@@ -5120,63 +5547,69 @@ textarea{resize:vertical;min-height:52px;font-weight:600}
      "texto": "Capeta",
      "pontos": 14
     }
-   ]
+   ],
+   "categoria": "Xingamentos",
+   "numero": 165
   },
   {
    "pergunta": "Cite um jeito de chamar alguém de burro",
    "respostas": [
     {
-     "texto": "Burro mesmo",
-     "pontos": 24
+     "texto": "Burro do caralho",
+     "pontos": 26
     },
     {
-     "texto": "Cabeça-dura",
-     "pontos": 22
-    },
-    {
-     "texto": "Sem noção",
+     "texto": "Estúpido",
      "pontos": 20
     },
     {
-     "texto": "Lerdo",
+     "texto": "Cabeça-dura",
+     "pontos": 20
+    },
+    {
+     "texto": "Imbecil",
      "pontos": 18
     },
     {
-     "texto": "Bronco",
+     "texto": "Otário",
      "pontos": 16
     }
-   ]
+   ],
+   "categoria": "Xingamentos",
+   "numero": 166
   },
   {
    "pergunta": "Cite algo que se fala pro time perder de vez",
    "respostas": [
     {
-     "texto": "Vergonha!",
-     "pontos": 26
+     "texto": "Vergonha, porra!",
+     "pontos": 28
     },
     {
-     "texto": "Que time ruim",
+     "texto": "Bando de otário",
      "pontos": 22
     },
     {
-     "texto": "Muda o técnico!",
+     "texto": "Muda o técnico, caralho!",
      "pontos": 20
     },
     {
-     "texto": "Desiste!",
-     "pontos": 18
+     "texto": "Desiste logo",
+     "pontos": 16
     },
     {
-     "texto": "Só decepção",
+     "texto": "Time de merda",
      "pontos": 14
     }
-   ]
+   ],
+   "categoria": "Xingamentos",
+   "numero": 167
   },
   {
    "pergunta": "Cite um xingamento comum entre irmãos",
    "respostas": [
     {
-     "texto": "Chato",
+     "texto": "Chato do caralho",
      "pontos": 26
     },
     {
@@ -5192,95 +5625,103 @@ textarea{resize:vertical;min-height:52px;font-weight:600}
      "pontos": 18
     },
     {
-     "texto": "Chorão",
+     "texto": "Idiota",
      "pontos": 14
     }
-   ]
+   ],
+   "categoria": "Xingamentos",
+   "numero": 168
   },
   {
    "pergunta": "Cite um jeito de chamar alguém metido",
    "respostas": [
     {
-     "texto": "Convencido",
+     "texto": "Convencido do caralho",
      "pontos": 26
     },
     {
-     "texto": "Fresco",
+     "texto": "Cheio de merda",
      "pontos": 22
     },
     {
-     "texto": "Cheio de si",
+     "texto": "Fresco",
      "pontos": 20
     },
     {
-     "texto": "Metido",
+     "texto": "Metido a besta",
      "pontos": 18
     },
     {
-     "texto": "Pretensioso",
+     "texto": "Cara de pau",
      "pontos": 14
     }
-   ]
+   ],
+   "categoria": "Xingamentos",
+   "numero": 169
   },
   {
    "pergunta": "Cite um xingamento que se fala pro árbitro",
    "respostas": [
     {
-     "texto": "Ladrão!",
-     "pontos": 34
+     "texto": "Ladrão filho da puta!",
+     "pontos": 32
     },
     {
      "texto": "Vendido!",
-     "pontos": 24
+     "pontos": 22
     },
     {
-     "texto": "Cego!",
+     "texto": "Vai tomar no cu!",
      "pontos": 20
     },
     {
-     "texto": "Vergonha!",
-     "pontos": 14
+     "texto": "Cego, porra!",
+     "pontos": 16
     },
     {
-     "texto": "Incompetente!",
-     "pontos": 8
+     "texto": "Vagabundo!",
+     "pontos": 10
     }
-   ]
+   ],
+   "categoria": "Xingamentos",
+   "numero": 170
   },
   {
    "pergunta": "Cite um xingamento pro chefe, só na sua cabeça",
    "respostas": [
     {
-     "texto": "Folgado",
-     "pontos": 26
+     "texto": "Filho da puta",
+     "pontos": 28
     },
     {
-     "texto": "Chato",
+     "texto": "Desgraçado",
      "pontos": 22
     },
     {
-     "texto": "Sem noção",
+     "texto": "Merda de chefe",
      "pontos": 20
     },
     {
-     "texto": "Cara de pau",
-     "pontos": 18
+     "texto": "Folgado do caralho",
+     "pontos": 16
     },
     {
-     "texto": "Mala",
+     "texto": "Cara de pau",
      "pontos": 14
     }
-   ]
+   ],
+   "categoria": "Xingamentos",
+   "numero": 171
   },
   {
    "pergunta": "Cite algo que a gente xinga o time adversário",
    "respostas": [
     {
-     "texto": "Fominha",
+     "texto": "Bando de otário",
      "pontos": 28
     },
     {
-     "texto": "Time pequeno",
+     "texto": "Fominha do caralho",
      "pontos": 24
     },
     {
@@ -5292,10 +5733,12 @@ textarea{resize:vertical;min-height:52px;font-weight:600}
      "pontos": 16
     },
     {
-     "texto": "Perdedor",
+     "texto": "Time de merda",
      "pontos": 12
     }
-   ]
+   ],
+   "categoria": "Xingamentos",
+   "numero": 172
   },
   {
    "pergunta": "Complete: minha sogra é tão braba que...",
@@ -5320,7 +5763,9 @@ textarea{resize:vertical;min-height:52px;font-weight:600}
      "texto": "Até o marido dela tem medo",
      "pontos": 16
     }
-   ]
+   ],
+   "categoria": "Minha sogra é",
+   "numero": 173
   },
   {
    "pergunta": "Complete: minha sogra é tão intrometida que...",
@@ -5345,7 +5790,9 @@ textarea{resize:vertical;min-height:52px;font-weight:600}
      "texto": "Comenta até o valor da sua conta de luz",
      "pontos": 14
     }
-   ]
+   ],
+   "categoria": "Minha sogra é",
+   "numero": 174
   },
   {
    "pergunta": "Complete: minha sogra é tão implicante que...",
@@ -5370,7 +5817,9 @@ textarea{resize:vertical;min-height:52px;font-weight:600}
      "texto": "Reclama até do jeito que você respira",
      "pontos": 14
     }
-   ]
+   ],
+   "categoria": "Minha sogra é",
+   "numero": 175
   },
   {
    "pergunta": "Complete: minha sogra é tão econômica que...",
@@ -5395,7 +5844,9 @@ textarea{resize:vertical;min-height:52px;font-weight:600}
      "texto": "Conta quantas vezes você puxou a descarga",
      "pontos": 14
     }
-   ]
+   ],
+   "categoria": "Minha sogra é",
+   "numero": 176
   },
   {
    "pergunta": "Complete: minha sogra é tão fofoqueira que...",
@@ -5420,7 +5871,9 @@ textarea{resize:vertical;min-height:52px;font-weight:600}
      "texto": "Sabe da vida de todo mundo, menos da dela",
      "pontos": 14
     }
-   ]
+   ],
+   "categoria": "Minha sogra é",
+   "numero": 177
   },
   {
    "pergunta": "Complete: minha sogra é tão desconfiada que...",
@@ -5445,7 +5898,9 @@ textarea{resize:vertical;min-height:52px;font-weight:600}
      "texto": "Duvida até de recibo de compra",
      "pontos": 14
     }
-   ]
+   ],
+   "categoria": "Minha sogra é",
+   "numero": 178
   },
   {
    "pergunta": "Complete: minha sogra é tão exagerada que...",
@@ -5470,7 +5925,9 @@ textarea{resize:vertical;min-height:52px;font-weight:600}
      "texto": "Chora em qualquer aniversário",
      "pontos": 12
     }
-   ]
+   ],
+   "categoria": "Minha sogra é",
+   "numero": 179
   },
   {
    "pergunta": "Complete: meu sogro é tão calado que...",
@@ -5495,7 +5952,9 @@ textarea{resize:vertical;min-height:52px;font-weight:600}
      "texto": "Some assim que a conversa esquenta",
      "pontos": 14
     }
-   ]
+   ],
+   "categoria": "Minha sogra é",
+   "numero": 180
   },
   {
    "pergunta": "Complete: meu sogro é tão antigo no jeito de pensar que...",
@@ -5520,7 +5979,9 @@ textarea{resize:vertical;min-height:52px;font-weight:600}
      "texto": "Não confia em compra pela internet",
      "pontos": 14
     }
-   ]
+   ],
+   "categoria": "Minha sogra é",
+   "numero": 181
   },
   {
    "pergunta": "Complete: meu cunhado é tão folgado que...",
@@ -5545,7 +6006,9 @@ textarea{resize:vertical;min-height:52px;font-weight:600}
      "texto": "Come tudo da geladeira sem perguntar",
      "pontos": 12
     }
-   ]
+   ],
+   "categoria": "Minha sogra é",
+   "numero": 182
   },
   {
    "pergunta": "Complete: meu cunhado é tão folgado que, de novo...",
@@ -5570,7 +6033,9 @@ textarea{resize:vertical;min-height:52px;font-weight:600}
      "texto": "Leva marmita escondido embaixo do braço",
      "pontos": 12
     }
-   ]
+   ],
+   "categoria": "Minha sogra é",
+   "numero": 183
   },
   {
    "pergunta": "Complete: minha vizinha é tão fofoqueira que...",
@@ -5595,7 +6060,9 @@ textarea{resize:vertical;min-height:52px;font-weight:600}
      "texto": "Inventa história em cima do que ouviu",
      "pontos": 14
     }
-   ]
+   ],
+   "categoria": "Minha sogra é",
+   "numero": 184
   },
   {
    "pergunta": "Complete: meu vizinho é tão barulhento que...",
@@ -5620,7 +6087,9 @@ textarea{resize:vertical;min-height:52px;font-weight:600}
      "texto": "O cachorro dele late a madrugada inteira",
      "pontos": 14
     }
-   ]
+   ],
+   "categoria": "Minha sogra é",
+   "numero": 185
   },
   {
    "pergunta": "Complete: minha ex é tão ciumenta que...",
@@ -5645,7 +6114,9 @@ textarea{resize:vertical;min-height:52px;font-weight:600}
      "texto": "Fazia escândalo por qualquer coisa",
      "pontos": 12
     }
-   ]
+   ],
+   "categoria": "Minha sogra é",
+   "numero": 186
   },
   {
    "pergunta": "Complete: meu chefe é tão sovina que...",
@@ -5670,7 +6141,9 @@ textarea{resize:vertical;min-height:52px;font-weight:600}
      "texto": "Dá aumento só depois de muito choro",
      "pontos": 12
     }
-   ]
+   ],
+   "categoria": "Minha sogra é",
+   "numero": 187
   },
   {
    "pergunta": "Complete: meu chefe é tão chato que...",
@@ -5695,7 +6168,9 @@ textarea{resize:vertical;min-height:52px;font-weight:600}
      "texto": "Fica de olho até na hora do café",
      "pontos": 12
     }
-   ]
+   ],
+   "categoria": "Minha sogra é",
+   "numero": 188
   },
   {
    "pergunta": "Complete: minha sogra é tão controladora que...",
@@ -5720,7 +6195,9 @@ textarea{resize:vertical;min-height:52px;font-weight:600}
      "texto": "Dá palpite até na sua roupa",
      "pontos": 14
     }
-   ]
+   ],
+   "categoria": "Minha sogra é",
+   "numero": 189
   },
   {
    "pergunta": "Complete: minha sogra é tão dramática que...",
@@ -5745,7 +6222,9 @@ textarea{resize:vertical;min-height:52px;font-weight:600}
      "texto": "Vira vítima em qualquer discussão",
      "pontos": 14
     }
-   ]
+   ],
+   "categoria": "Minha sogra é",
+   "numero": 190
   },
   {
    "pergunta": "Complete: minha cunhada é tão competitiva que...",
@@ -5770,7 +6249,9 @@ textarea{resize:vertical;min-height:52px;font-weight:600}
      "texto": "Reforma a casa sempre que você reforma a sua",
      "pontos": 14
     }
-   ]
+   ],
+   "categoria": "Minha sogra é",
+   "numero": 191
   },
   {
    "pergunta": "Complete: minha tia é tão intrometida que...",
@@ -5795,7 +6276,9 @@ textarea{resize:vertical;min-height:52px;font-weight:600}
      "texto": "Dá palpite em decisão que não é dela",
      "pontos": 12
     }
-   ]
+   ],
+   "categoria": "Minha sogra é",
+   "numero": 192
   },
   {
    "pergunta": "Complete: meu sogro é tão durão que...",
@@ -5820,7 +6303,9 @@ textarea{resize:vertical;min-height:52px;font-weight:600}
      "texto": "Nunca elogia, só encontra defeito",
      "pontos": 10
     }
-   ]
+   ],
+   "categoria": "Minha sogra é",
+   "numero": 193
   },
   {
    "pergunta": "Complete: minha vizinha é tão invejosa que...",
@@ -5845,7 +6330,9 @@ textarea{resize:vertical;min-height:52px;font-weight:600}
      "texto": "Faz questão de mostrar que também tem",
      "pontos": 14
     }
-   ]
+   ],
+   "categoria": "Minha sogra é",
+   "numero": 194
   },
   {
    "pergunta": "Complete: minha sogra é tão feia de personalidade que...",
@@ -5870,7 +6357,9 @@ textarea{resize:vertical;min-height:52px;font-weight:600}
      "texto": "Faz o almoço de família virar tribunal",
      "pontos": 14
     }
-   ]
+   ],
+   "categoria": "Minha sogra é",
+   "numero": 195
   },
   {
    "pergunta": "Complete: meu cunhado é tão mala que...",
@@ -5895,7 +6384,9 @@ textarea{resize:vertical;min-height:52px;font-weight:600}
      "texto": "Só fala de si mesmo",
      "pontos": 12
     }
-   ]
+   ],
+   "categoria": "Minha sogra é",
+   "numero": 196
   },
   {
    "pergunta": "Complete: minha sogra é tão de opinião forte que...",
@@ -5920,7 +6411,1444 @@ textarea{resize:vertical;min-height:52px;font-weight:600}
      "texto": "Ganha qualquer discussão de família",
      "pontos": 14
     }
-   ]
+   ],
+   "categoria": "Minha sogra é",
+   "numero": 197
+  },
+  {
+   "pergunta": "Complete: eu vou para o trabalho de...",
+   "respostas": [
+    {
+     "texto": "Carro",
+     "pontos": 30
+    },
+    {
+     "texto": "Ônibus",
+     "pontos": 22
+    },
+    {
+     "texto": "A pé",
+     "pontos": 14
+    },
+    {
+     "texto": "Moto",
+     "pontos": 12
+    },
+    {
+     "texto": "Metrô",
+     "pontos": 12
+    },
+    {
+     "texto": "Bicicleta",
+     "pontos": 10
+    }
+   ],
+   "categoria": "Cotidiano",
+   "numero": 198
+  },
+  {
+   "pergunta": "Cite a primeira coisa que você faz assim que acorda",
+   "respostas": [
+    {
+     "texto": "Olha o celular",
+     "pontos": 32
+    },
+    {
+     "texto": "Aperta o soneca",
+     "pontos": 24
+    },
+    {
+     "texto": "Vai ao banheiro",
+     "pontos": 18
+    },
+    {
+     "texto": "Levanta direto sem pensar",
+     "pontos": 14
+    },
+    {
+     "texto": "Fica mais uns minutos na cama",
+     "pontos": 12
+    }
+   ],
+   "categoria": "Cotidiano",
+   "numero": 199
+  },
+  {
+   "pergunta": "Cite a primeira coisa que você olha no celular de manhã",
+   "respostas": [
+    {
+     "texto": "Mensagens do WhatsApp",
+     "pontos": 28
+    },
+    {
+     "texto": "As horas",
+     "pontos": 24
+    },
+    {
+     "texto": "Instagram",
+     "pontos": 20
+    },
+    {
+     "texto": "E-mail de trabalho",
+     "pontos": 16
+    },
+    {
+     "texto": "Notícias",
+     "pontos": 12
+    }
+   ],
+   "categoria": "Cotidiano",
+   "numero": 200
+  },
+  {
+   "pergunta": "Cite o que estraga a manhã de qualquer um",
+   "respostas": [
+    {
+     "texto": "Despertador que não tocou",
+     "pontos": 26
+    },
+    {
+     "texto": "Chuveiro frio",
+     "pontos": 22
+    },
+    {
+     "texto": "Trânsito logo cedo",
+     "pontos": 20
+    },
+    {
+     "texto": "Mensagem de trabalho antes de sair de casa",
+     "pontos": 18
+    },
+    {
+     "texto": "Café que acabou",
+     "pontos": 14
+    }
+   ],
+   "categoria": "Cotidiano",
+   "numero": 201
+  },
+  {
+   "pergunta": "Cite o que você faz na hora do almoço no trabalho",
+   "respostas": [
+    {
+     "texto": "Mexe no celular",
+     "pontos": 26
+    },
+    {
+     "texto": "Conversa com os colegas",
+     "pontos": 22
+    },
+    {
+     "texto": "Assiste alguma coisa",
+     "pontos": 18
+    },
+    {
+     "texto": "Cochila um pouco",
+     "pontos": 18
+    },
+    {
+     "texto": "Resolve um problema pessoal",
+     "pontos": 16
+    }
+   ],
+   "categoria": "Cotidiano",
+   "numero": 202
+  },
+  {
+   "pergunta": "Cite algo que todo mundo faz esperando o ônibus ou o metrô",
+   "respostas": [
+    {
+     "texto": "Mexe no celular",
+     "pontos": 34
+    },
+    {
+     "texto": "Olha pro relógio toda hora",
+     "pontos": 24
+    },
+    {
+     "texto": "Fica de fone de ouvido",
+     "pontos": 18
+    },
+    {
+     "texto": "Reclama do atraso",
+     "pontos": 14
+    },
+    {
+     "texto": "Fica de pé mesmo tendo banco",
+     "pontos": 10
+    }
+   ],
+   "categoria": "Cotidiano",
+   "numero": 203
+  },
+  {
+   "pergunta": "Cite uma tarefa doméstica que todo mundo adia",
+   "respostas": [
+    {
+     "texto": "Lavar a louça",
+     "pontos": 26
+    },
+    {
+     "texto": "Passar roupa",
+     "pontos": 22
+    },
+    {
+     "texto": "Organizar o armário",
+     "pontos": 18
+    },
+    {
+     "texto": "Limpar o banheiro",
+     "pontos": 18
+    },
+    {
+     "texto": "Trocar a lâmpada queimada",
+     "pontos": 16
+    }
+   ],
+   "categoria": "Cotidiano",
+   "numero": 204
+  },
+  {
+   "pergunta": "Cite algo que todo mundo faz no domingo à noite pensando na segunda",
+   "respostas": [
+    {
+     "texto": "Fica de mau humor",
+     "pontos": 28
+    },
+    {
+     "texto": "Adianta a roupa do trabalho",
+     "pontos": 22
+    },
+    {
+     "texto": "Vai dormir mais cedo",
+     "pontos": 20
+    },
+    {
+     "texto": "Procrastina até o último minuto",
+     "pontos": 16
+    },
+    {
+     "texto": "Faz a lista de tarefas da semana",
+     "pontos": 14
+    }
+   ],
+   "categoria": "Cotidiano",
+   "numero": 205
+  },
+  {
+   "pergunta": "Cite o motivo mais comum pra cancelar um compromisso",
+   "respostas": [
+    {
+     "texto": "Cansaço",
+     "pontos": 30
+    },
+    {
+     "texto": "Imprevisto no trabalho",
+     "pontos": 22
+    },
+    {
+     "texto": "Não tinha vontade mesmo",
+     "pontos": 18
+    },
+    {
+     "texto": "Choveu",
+     "pontos": 16
+    },
+    {
+     "texto": "Ficou sem dinheiro",
+     "pontos": 14
+    }
+   ],
+   "categoria": "Cotidiano",
+   "numero": 206
+  },
+  {
+   "pergunta": "Cite o que você faz quando fica sem internet em casa",
+   "respostas": [
+    {
+     "texto": "Reinicia o roteador",
+     "pontos": 30
+    },
+    {
+     "texto": "Liga para a operadora",
+     "pontos": 22
+    },
+    {
+     "texto": "Usa os dados do celular",
+     "pontos": 20
+    },
+    {
+     "texto": "Fica andando pela casa sem fazer nada",
+     "pontos": 16
+    },
+    {
+     "texto": "Xinga sozinho",
+     "pontos": 12
+    }
+   ],
+   "categoria": "Cotidiano",
+   "numero": 207
+  },
+  {
+   "pergunta": "Cite uma coisa que todo mundo confere antes de sair de casa",
+   "respostas": [
+    {
+     "texto": "Celular",
+     "pontos": 32
+    },
+    {
+     "texto": "Chave",
+     "pontos": 26
+    },
+    {
+     "texto": "Carteira",
+     "pontos": 20
+    },
+    {
+     "texto": "Se a porta trancou",
+     "pontos": 12
+    },
+    {
+     "texto": "Se o fogão está desligado",
+     "pontos": 10
+    }
+   ],
+   "categoria": "Cotidiano",
+   "numero": 208
+  },
+  {
+   "pergunta": "Cite o que você faz quando o chefe manda mensagem fora do horário",
+   "respostas": [
+    {
+     "texto": "Finge que não viu",
+     "pontos": 28
+    },
+    {
+     "texto": "Responde na hora mesmo de má vontade",
+     "pontos": 24
+    },
+    {
+     "texto": "Fica irritado o resto da noite",
+     "pontos": 20
+    },
+    {
+     "texto": "Responde só no outro dia",
+     "pontos": 16
+    },
+    {
+     "texto": "Manda para o grupo reclamar com os colegas",
+     "pontos": 12
+    }
+   ],
+   "categoria": "Cotidiano",
+   "numero": 209
+  },
+  {
+   "pergunta": "Cite algo que todo mundo faz esperando o delivery chegar",
+   "respostas": [
+    {
+     "texto": "Fica olhando o rastreamento",
+     "pontos": 30
+    },
+    {
+     "texto": "Reclama que está demorando",
+     "pontos": 22
+    },
+    {
+     "texto": "Já vai abrindo o app de novo pra pedir outra coisa",
+     "pontos": 18
+    },
+    {
+     "texto": "Fica na janela esperando",
+     "pontos": 16
+    },
+    {
+     "texto": "Come qualquer coisa de ansiedade",
+     "pontos": 14
+    }
+   ],
+   "categoria": "Cotidiano",
+   "numero": 210
+  },
+  {
+   "pergunta": "Cite a primeira coisa que você faz ao chegar no trabalho",
+   "respostas": [
+    {
+     "texto": "Liga o computador",
+     "pontos": 28
+    },
+    {
+     "texto": "Faz um café",
+     "pontos": 24
+    },
+    {
+     "texto": "Cumprimenta todo mundo",
+     "pontos": 20
+    },
+    {
+     "texto": "Confere os e-mails",
+     "pontos": 16
+    },
+    {
+     "texto": "Vai direto ao banheiro",
+     "pontos": 12
+    }
+   ],
+   "categoria": "Cotidiano",
+   "numero": 211
+  },
+  {
+   "pergunta": "Cite um motivo pra sair mais cedo do trabalho",
+   "respostas": [
+    {
+     "texto": "Compromisso médico",
+     "pontos": 26
+    },
+    {
+     "texto": "Não aguentava mais o dia",
+     "pontos": 24
+    },
+    {
+     "texto": "Trânsito ruim mais tarde",
+     "pontos": 18
+    },
+    {
+     "texto": "Problema em casa",
+     "pontos": 18
+    },
+    {
+     "texto": "Já tinha terminado tudo",
+     "pontos": 14
+    }
+   ],
+   "categoria": "Cotidiano",
+   "numero": 212
+  },
+  {
+   "pergunta": "Cite algo que todo mundo faz no banho",
+   "respostas": [
+    {
+     "texto": "Canta",
+     "pontos": 30
+    },
+    {
+     "texto": "Pensa na vida",
+     "pontos": 24
+    },
+    {
+     "texto": "Demora mais que devia",
+     "pontos": 20
+    },
+    {
+     "texto": "Resolve problema do trabalho na cabeça",
+     "pontos": 16
+    },
+    {
+     "texto": "Usa o celular mesmo sabendo que não devia",
+     "pontos": 10
+    }
+   ],
+   "categoria": "Cotidiano",
+   "numero": 213
+  },
+  {
+   "pergunta": "Cite o que você faz para procrastinar",
+   "respostas": [
+    {
+     "texto": "Mexe no celular",
+     "pontos": 32
+    },
+    {
+     "texto": "Vai comer alguma coisa",
+     "pontos": 22
+    },
+    {
+     "texto": "Arruma algo que não precisava",
+     "pontos": 18
+    },
+    {
+     "texto": "Assiste vídeo curto",
+     "pontos": 16
+    },
+    {
+     "texto": "Vai no banheiro só para sair do lugar",
+     "pontos": 12
+    }
+   ],
+   "categoria": "Cotidiano",
+   "numero": 214
+  },
+  {
+   "pergunta": "Cite uma desculpa para não ir à academia",
+   "respostas": [
+    {
+     "texto": "Estou cansado",
+     "pontos": 30
+    },
+    {
+     "texto": "Amanhã eu vou",
+     "pontos": 24
+    },
+    {
+     "texto": "Está doendo alguma coisa",
+     "pontos": 18
+    },
+    {
+     "texto": "Não deu tempo hoje",
+     "pontos": 16
+    },
+    {
+     "texto": "Está chovendo",
+     "pontos": 12
+    }
+   ],
+   "categoria": "Cotidiano",
+   "numero": 215
+  },
+  {
+   "pergunta": "Cite algo que todo mundo faz no supermercado",
+   "respostas": [
+    {
+     "texto": "Esquece algo da lista",
+     "pontos": 26
+    },
+    {
+     "texto": "Compra o que não precisava",
+     "pontos": 24
+    },
+    {
+     "texto": "Fica perdido procurando um corredor",
+     "pontos": 20
+    },
+    {
+     "texto": "Reclama do preço",
+     "pontos": 18
+    },
+    {
+     "texto": "Pega o carrinho torto",
+     "pontos": 12
+    }
+   ],
+   "categoria": "Cotidiano",
+   "numero": 216
+  },
+  {
+   "pergunta": "Cite o que estraga o fim de semana",
+   "respostas": [
+    {
+     "texto": "Lembrar que segunda está chegando",
+     "pontos": 28
+    },
+    {
+     "texto": "Chuva o fim de semana inteiro",
+     "pontos": 22
+    },
+    {
+     "texto": "Mensagem de trabalho no meio do descanso",
+     "pontos": 20
+    },
+    {
+     "texto": "Ressaca",
+     "pontos": 16
+    },
+    {
+     "texto": "Compromisso que ninguém quer ir",
+     "pontos": 14
+    }
+   ],
+   "categoria": "Cotidiano",
+   "numero": 217
+  },
+  {
+   "pergunta": "Cite algo que todo mundo faz esperando o médico",
+   "respostas": [
+    {
+     "texto": "Mexe no celular",
+     "pontos": 34
+    },
+    {
+     "texto": "Olha pro relógio",
+     "pontos": 24
+    },
+    {
+     "texto": "Puxa assunto com quem está do lado",
+     "pontos": 18
+    },
+    {
+     "texto": "Reclama do atraso",
+     "pontos": 14
+    },
+    {
+     "texto": "Lê alguma revista velha",
+     "pontos": 10
+    }
+   ],
+   "categoria": "Cotidiano",
+   "numero": 218
+  },
+  {
+   "pergunta": "Cite o que você faz quando o Wi-Fi cai no meio de um filme",
+   "respostas": [
+    {
+     "texto": "Reinicia o roteador na hora",
+     "pontos": 32
+    },
+    {
+     "texto": "Xinga sozinho",
+     "pontos": 22
+    },
+    {
+     "texto": "Tenta pelo dado móvel",
+     "pontos": 20
+    },
+    {
+     "texto": "Espera uns minutos parado olhando pra tela",
+     "pontos": 16
+    },
+    {
+     "texto": "Desiste e vai dormir",
+     "pontos": 10
+    }
+   ],
+   "categoria": "Cotidiano",
+   "numero": 219
+  },
+  {
+   "pergunta": "Cite algo que todo mundo finge que entende na conta de luz",
+   "respostas": [
+    {
+     "texto": "Bandeira tarifária",
+     "pontos": 32
+    },
+    {
+     "texto": "Os impostos cobrados",
+     "pontos": 26
+    },
+    {
+     "texto": "Por que aumentou tanto",
+     "pontos": 20
+    },
+    {
+     "texto": "Iluminação pública",
+     "pontos": 14
+    },
+    {
+     "texto": "O kWh consumido",
+     "pontos": 8
+    }
+   ],
+   "categoria": "Cotidiano",
+   "numero": 220
+  },
+  {
+   "pergunta": "Cite algo que você faz antes de dormir",
+   "respostas": [
+    {
+     "texto": "Mexe no celular",
+     "pontos": 34
+    },
+    {
+     "texto": "Vê a hora e se arrepende de estar acordado",
+     "pontos": 22
+    },
+    {
+     "texto": "Pensa em tudo que precisa fazer amanhã",
+     "pontos": 18
+    },
+    {
+     "texto": "Escova os dentes",
+     "pontos": 14
+    },
+    {
+     "texto": "Coloca o despertador",
+     "pontos": 12
+    }
+   ],
+   "categoria": "Cotidiano",
+   "numero": 221
+  },
+  {
+   "pergunta": "Cite o que você faz numa reunião online quando não está prestando atenção",
+   "respostas": [
+    {
+     "texto": "Mexe no celular escondido",
+     "pontos": 30
+    },
+    {
+     "texto": "Deixa a câmera desligada",
+     "pontos": 24
+    },
+    {
+     "texto": "Finge que a internet caiu",
+     "pontos": 18
+    },
+    {
+     "texto": "Responde mensagem de outra coisa",
+     "pontos": 16
+    },
+    {
+     "texto": "Fica olhando o próprio reflexo na tela",
+     "pontos": 12
+    }
+   ],
+   "categoria": "Cotidiano",
+   "numero": 222
+  },
+  {
+   "pergunta": "Cite o motivo mais comum pra não responder mensagem na hora",
+   "respostas": [
+    {
+     "texto": "Estava ocupado",
+     "pontos": 28
+    },
+    {
+     "texto": "Vi e esqueci de responder",
+     "pontos": 24
+    },
+    {
+     "texto": "Não sabia o que responder",
+     "pontos": 20
+    },
+    {
+     "texto": "Estava com preguiça",
+     "pontos": 16
+    },
+    {
+     "texto": "Deixei para ler com calma depois",
+     "pontos": 12
+    }
+   ],
+   "categoria": "Cotidiano",
+   "numero": 223
+  },
+  {
+   "pergunta": "Cite algo que todo mundo faz no trânsito parado",
+   "respostas": [
+    {
+     "texto": "Mexe no celular",
+     "pontos": 30
+    },
+    {
+     "texto": "Fica irritado",
+     "pontos": 24
+    },
+    {
+     "texto": "Troca de música o tempo todo",
+     "pontos": 18
+    },
+    {
+     "texto": "Olha o que os outros carros estão fazendo",
+     "pontos": 16
+    },
+    {
+     "texto": "Liga para avisar que vai atrasar",
+     "pontos": 12
+    }
+   ],
+   "categoria": "Cotidiano",
+   "numero": 224
+  },
+  {
+   "pergunta": "Cite o que você faz na sexta-feira à tarde no trabalho",
+   "respostas": [
+    {
+     "texto": "Já pensa no fim de semana",
+     "pontos": 30
+    },
+    {
+     "texto": "Rende menos que nos outros dias",
+     "pontos": 24
+    },
+    {
+     "texto": "Combina programa com os amigos",
+     "pontos": 20
+    },
+    {
+     "texto": "Deixa tarefa chata para segunda",
+     "pontos": 16
+    },
+    {
+     "texto": "Sai mais cedo se der",
+     "pontos": 10
+    }
+   ],
+   "categoria": "Cotidiano",
+   "numero": 225
+  },
+  {
+   "pergunta": "Cite algo que todo mundo faz antes de postar uma foto",
+   "respostas": [
+    {
+     "texto": "Usa filtro",
+     "pontos": 28
+    },
+    {
+     "texto": "Tira várias até escolher uma",
+     "pontos": 26
+    },
+    {
+     "texto": "Edita a legenda várias vezes",
+     "pontos": 18
+    },
+    {
+     "texto": "Pergunta pra alguém qual foto ficou melhor",
+     "pontos": 16
+    },
+    {
+     "texto": "Corta quem não devia aparecer",
+     "pontos": 12
+    }
+   ],
+   "categoria": "Cotidiano",
+   "numero": 226
+  },
+  {
+   "pergunta": "Cite algo que todo mundo faz quando a comida do prato não presta",
+   "respostas": [
+    {
+     "texto": "Come do mesmo jeito com cara feia",
+     "pontos": 26
+    },
+    {
+     "texto": "Disfarça pra não ofender quem fez",
+     "pontos": 24
+    },
+    {
+     "texto": "Reclama depois pra outra pessoa",
+     "pontos": 20
+    },
+    {
+     "texto": "Passa mais tempero",
+     "pontos": 18
+    },
+    {
+     "texto": "Deixa metade no prato",
+     "pontos": 12
+    }
+   ],
+   "categoria": "Cotidiano",
+   "numero": 227
+  },
+  {
+   "pergunta": "Cite algo que todo mundo faz esperando alguém que está atrasado",
+   "respostas": [
+    {
+     "texto": "Fica no celular",
+     "pontos": 30
+    },
+    {
+     "texto": "Manda mensagem perguntando onde está",
+     "pontos": 26
+    },
+    {
+     "texto": "Fica irritado por dentro",
+     "pontos": 18
+    },
+    {
+     "texto": "Pede mais uma coisa enquanto espera",
+     "pontos": 16
+    },
+    {
+     "texto": "Já pensa em ir embora",
+     "pontos": 10
+    }
+   ],
+   "categoria": "Cotidiano",
+   "numero": 228
+  },
+  {
+   "pergunta": "Cite uma coisa que todo mundo diz que vai fazer e nunca faz",
+   "respostas": [
+    {
+     "texto": "Ir para a academia",
+     "pontos": 26
+    },
+    {
+     "texto": "Começar a dieta segunda-feira",
+     "pontos": 24
+    },
+    {
+     "texto": "Organizar as finanças",
+     "pontos": 18
+    },
+    {
+     "texto": "Aprender outro idioma",
+     "pontos": 18
+    },
+    {
+     "texto": "Ler mais livros",
+     "pontos": 14
+    }
+   ],
+   "categoria": "Cotidiano",
+   "numero": 229
+  },
+  {
+   "pergunta": "Cite algo que todo mundo faz no primeiro dia de dieta",
+   "respostas": [
+    {
+     "texto": "Posta que começou",
+     "pontos": 26
+    },
+    {
+     "texto": "Joga fora as coisas de doce de casa",
+     "pontos": 22
+    },
+    {
+     "texto": "Já quebra a dieta antes do fim do dia",
+     "pontos": 22
+    },
+    {
+     "texto": "Pesa na balança de manhã",
+     "pontos": 16
+    },
+    {
+     "texto": "Compra comida saudável em excesso",
+     "pontos": 14
+    }
+   ],
+   "categoria": "Cotidiano",
+   "numero": 230
+  },
+  {
+   "pergunta": "Cite um superpoder completamente inútil",
+   "respostas": [
+    {
+     "texto": "Deixar a água morna",
+     "pontos": 26
+    },
+    {
+     "texto": "Falar com pombos",
+     "pontos": 22
+    },
+    {
+     "texto": "Teletransportar só até o banheiro",
+     "pontos": 20
+    },
+    {
+     "texto": "Ficar invisível só no escuro",
+     "pontos": 18
+    },
+    {
+     "texto": "Prever o resultado de jogo que já acabou",
+     "pontos": 14
+    }
+   ],
+   "categoria": "Absurdas",
+   "numero": 231
+  },
+  {
+   "pergunta": "Cite o pior nome possível para dar a um restaurante",
+   "respostas": [
+    {
+     "texto": "Comida Duvidosa",
+     "pontos": 26
+    },
+    {
+     "texto": "Vai Dar Ruim",
+     "pontos": 24
+    },
+    {
+     "texto": "Fome Zero de Clientes",
+     "pontos": 20
+    },
+    {
+     "texto": "Prato do Arrependimento",
+     "pontos": 18
+    },
+    {
+     "texto": "Só Hoje, Nunca Mais",
+     "pontos": 12
+    }
+   ],
+   "categoria": "Absurdas",
+   "numero": 232
+  },
+  {
+   "pergunta": "Cite algo que um cachorro pensaria se pudesse falar",
+   "respostas": [
+    {
+     "texto": "Por que você demorou tanto",
+     "pontos": 28
+    },
+    {
+     "texto": "Essa comida de novo?",
+     "pontos": 22
+    },
+    {
+     "texto": "Quem é esse estranho na porta",
+     "pontos": 20
+    },
+    {
+     "texto": "Vamos passear agora",
+     "pontos": 18
+    },
+    {
+     "texto": "Eu não rasguei o sofá, foi outro cachorro",
+     "pontos": 12
+    }
+   ],
+   "categoria": "Absurdas",
+   "numero": 233
+  },
+  {
+   "pergunta": "Cite algo impossível de fazer usando só um guarda-chuva",
+   "respostas": [
+    {
+     "texto": "Voar como o Mary Poppins",
+     "pontos": 30
+    },
+    {
+     "texto": "Servir de escudo contra tudo",
+     "pontos": 22
+    },
+    {
+     "texto": "Abrir dentro de casa sem dar azar",
+     "pontos": 20
+    },
+    {
+     "texto": "Proteger de vento forte",
+     "pontos": 16
+    },
+    {
+     "texto": "Guardar sem perder uma vareta",
+     "pontos": 12
+    }
+   ],
+   "categoria": "Absurdas",
+   "numero": 234
+  },
+  {
+   "pergunta": "Cite um motivo bobo para uma pessoa brigar com outra",
+   "respostas": [
+    {
+     "texto": "O jeito de comer",
+     "pontos": 26
+    },
+    {
+     "texto": "Discussão sobre política",
+     "pontos": 22
+    },
+    {
+     "texto": "Time de futebol",
+     "pontos": 20
+    },
+    {
+     "texto": "Quem deveria ter respondido a mensagem",
+     "pontos": 18
+    },
+    {
+     "texto": "Lugar errado de estacionar",
+     "pontos": 14
+    }
+   ],
+   "categoria": "Absurdas",
+   "numero": 235
+  },
+  {
+   "pergunta": "Cite algo que você levaria para uma ilha deserta mesmo sendo inútil",
+   "respostas": [
+    {
+     "texto": "Carregador de celular sem tomada",
+     "pontos": 26
+    },
+    {
+     "texto": "Controle remoto sem TV",
+     "pontos": 24
+    },
+    {
+     "texto": "Guarda-roupa inteiro",
+     "pontos": 18
+    },
+    {
+     "texto": "Fone de ouvido sem celular",
+     "pontos": 18
+    },
+    {
+     "texto": "Espelho",
+     "pontos": 14
+    }
+   ],
+   "categoria": "Absurdas",
+   "numero": 236
+  },
+  {
+   "pergunta": "Cite algo que um alienígena estranharia ao visitar a Terra",
+   "respostas": [
+    {
+     "texto": "As pessoas pagando para malhar",
+     "pontos": 26
+    },
+    {
+     "texto": "Trânsito parado por horas",
+     "pontos": 22
+    },
+    {
+     "texto": "Gente pagando para assistir outra pessoa jogar",
+     "pontos": 20
+    },
+    {
+     "texto": "Fila para comprar celular novo",
+     "pontos": 18
+    },
+    {
+     "texto": "Gente tirando foto da comida antes de comer",
+     "pontos": 14
+    }
+   ],
+   "categoria": "Absurdas",
+   "numero": 237
+  },
+  {
+   "pergunta": "Cite um jeito estranho de ganhar na loteria e se arrepender",
+   "respostas": [
+    {
+     "texto": "Perder o bilhete",
+     "pontos": 30
+    },
+    {
+     "texto": "A família toda aparecer do nada",
+     "pontos": 24
+    },
+    {
+     "texto": "Descobrir que apostou o número errado por um dígito",
+     "pontos": 20
+    },
+    {
+     "texto": "Gastar tudo em um mês",
+     "pontos": 16
+    },
+    {
+     "texto": "Virar alvo de golpe",
+     "pontos": 10
+    }
+   ],
+   "categoria": "Absurdas",
+   "numero": 238
+  },
+  {
+   "pergunta": "Cite algo ridículo que uma pessoa faria se virasse invisível por um dia",
+   "respostas": [
+    {
+     "texto": "Assustar alguém",
+     "pontos": 28
+    },
+    {
+     "texto": "Entrar de graça em algum lugar",
+     "pontos": 22
+    },
+    {
+     "texto": "Ouvir conversa dos outros",
+     "pontos": 20
+    },
+    {
+     "texto": "Pregar peça em alguém",
+     "pontos": 16
+    },
+    {
+     "texto": "Dormir no trabalho sem ser visto",
+     "pontos": 14
+    }
+   ],
+   "categoria": "Absurdas",
+   "numero": 239
+  },
+  {
+   "pergunta": "Cite um animal que ficaria ridículo do tamanho de um elefante",
+   "respostas": [
+    {
+     "texto": "Barata",
+     "pontos": 34
+    },
+    {
+     "texto": "Rato",
+     "pontos": 24
+    },
+    {
+     "texto": "Aranha",
+     "pontos": 20
+    },
+    {
+     "texto": "Formiga",
+     "pontos": 14
+    },
+    {
+     "texto": "Pombo",
+     "pontos": 8
+    }
+   ],
+   "categoria": "Absurdas",
+   "numero": 240
+  },
+  {
+   "pergunta": "Cite uma profissão que provavelmente vai deixar de existir",
+   "respostas": [
+    {
+     "texto": "Cobrador de ônibus",
+     "pontos": 26
+    },
+    {
+     "texto": "Frentista",
+     "pontos": 22
+    },
+    {
+     "texto": "Caixa de mercado",
+     "pontos": 20
+    },
+    {
+     "texto": "Digitador",
+     "pontos": 18
+    },
+    {
+     "texto": "Entregador de jornal",
+     "pontos": 14
+    }
+   ],
+   "categoria": "Absurdas",
+   "numero": 241
+  },
+  {
+   "pergunta": "Cite algo estranho que você faria se fosse invisível na sua própria casa",
+   "respostas": [
+    {
+     "texto": "Assustar quem mora com você",
+     "pontos": 28
+    },
+    {
+     "texto": "Comer escondido",
+     "pontos": 22
+    },
+    {
+     "texto": "Não fazer nada demais mesmo",
+     "pontos": 20
+    },
+    {
+     "texto": "Sumir das tarefas de casa",
+     "pontos": 18
+    },
+    {
+     "texto": "Espiar o celular de alguém",
+     "pontos": 12
+    }
+   ],
+   "categoria": "Absurdas",
+   "numero": 242
+  },
+  {
+   "pergunta": "Cite algo bizarro que poderia virar esporte olímpico",
+   "respostas": [
+    {
+     "texto": "Corrida de carrinho de supermercado",
+     "pontos": 28
+    },
+    {
+     "texto": "Campeonato de soneca",
+     "pontos": 22
+    },
+    {
+     "texto": "Disputa de quem estaciona melhor",
+     "pontos": 20
+    },
+    {
+     "texto": "Campeonato de reclamar de fila",
+     "pontos": 18
+    },
+    {
+     "texto": "Corrida com salto alto",
+     "pontos": 12
+    }
+   ],
+   "categoria": "Absurdas",
+   "numero": 243
+  },
+  {
+   "pergunta": "Cite um jeito absurdo de explicar por que se atrasou",
+   "respostas": [
+    {
+     "texto": "Um alienígena pousou na frente do carro",
+     "pontos": 28
+    },
+    {
+     "texto": "O relógio parou sozinho",
+     "pontos": 22
+    },
+    {
+     "texto": "Perdi a noção do tempo no banho",
+     "pontos": 20
+    },
+    {
+     "texto": "O GPS me mandou pro lugar errado",
+     "pontos": 18
+    },
+    {
+     "texto": "Achei que hoje era outro dia da semana",
+     "pontos": 12
+    }
+   ],
+   "categoria": "Absurdas",
+   "numero": 244
+  },
+  {
+   "pergunta": "Cite algo que ficaria engraçado se todo mundo falasse a verdade o tempo todo",
+   "respostas": [
+    {
+     "texto": "Elogio de presente ruim",
+     "pontos": 28
+    },
+    {
+     "texto": "Resposta sincera pra 'como estou nessa roupa'",
+     "pontos": 24
+    },
+    {
+     "texto": "Motivo real de recusar um convite",
+     "pontos": 20
+    },
+    {
+     "texto": "Opinião sobre a comida de alguém",
+     "pontos": 16
+    },
+    {
+     "texto": "O que realmente acham do chefe",
+     "pontos": 12
+    }
+   ],
+   "categoria": "Absurdas",
+   "numero": 245
+  },
+  {
+   "pergunta": "Cite uma frase clichê que todo mundo fala num velório",
+   "respostas": [
+    {
+     "texto": "Ele(a) não sofreu",
+     "pontos": 26
+    },
+    {
+     "texto": "Está num lugar melhor agora",
+     "pontos": 24
+    },
+    {
+     "texto": "Foi tão de repente",
+     "pontos": 20
+    },
+    {
+     "texto": "Meus sentimentos",
+     "pontos": 18
+    },
+    {
+     "texto": "Ainda ontem eu falei com ele(a)",
+     "pontos": 12
+    }
+   ],
+   "categoria": "Humor negro",
+   "numero": 246
+  },
+  {
+   "pergunta": "Cite o primeiro pensamento de alguém ao saber que vai receber uma herança",
+   "respostas": [
+    {
+     "texto": "Quanto vai sobrar pra mim",
+     "pontos": 30
+    },
+    {
+     "texto": "Quem mais vai querer dividir",
+     "pontos": 24
+    },
+    {
+     "texto": "Já pensa em quitar as dívidas",
+     "pontos": 18
+    },
+    {
+     "texto": "Finge tristeza na frente da família",
+     "pontos": 16
+    },
+    {
+     "texto": "Já pensa em viajar",
+     "pontos": 12
+    }
+   ],
+   "categoria": "Humor negro",
+   "numero": 247
+  },
+  {
+   "pergunta": "Cite uma piada que só dá para contar depois de um tempo da desgraça",
+   "respostas": [
+    {
+     "texto": "Sobre um término de relacionamento",
+     "pontos": 26
+    },
+    {
+     "texto": "Sobre uma demissão",
+     "pontos": 24
+    },
+    {
+     "texto": "Sobre um acidente bobo que aconteceu com você",
+     "pontos": 20
+    },
+    {
+     "texto": "Sobre uma vergonha pública",
+     "pontos": 18
+    },
+    {
+     "texto": "Sobre uma dívida que você tomou",
+     "pontos": 12
+    }
+   ],
+   "categoria": "Humor negro",
+   "numero": 248
+  },
+  {
+   "pergunta": "Cite algo que passa pela cabeça de todo mundo numa herança em família",
+   "respostas": [
+    {
+     "texto": "Quem vai brigar primeiro",
+     "pontos": 28
+    },
+    {
+     "texto": "Quem vai ficar com a casa",
+     "pontos": 24
+    },
+    {
+     "texto": "Quanto vai dar pra cada um",
+     "pontos": 20
+    },
+    {
+     "texto": "Quem sumiu e só apareceu agora",
+     "pontos": 16
+    },
+    {
+     "texto": "Se vale a pena brigar por isso",
+     "pontos": 12
+    }
+   ],
+   "categoria": "Humor negro",
+   "numero": 249
+  },
+  {
+   "pergunta": "Complete: no meu funeral eu quero que...",
+   "respostas": [
+    {
+     "texto": "Toquem a música que eu gostava",
+     "pontos": 26
+    },
+    {
+     "texto": "Sirvam a minha comida preferida",
+     "pontos": 22
+    },
+    {
+     "texto": "Ninguém finja tristeza que não sente",
+     "pontos": 20
+    },
+    {
+     "texto": "Contem uma história engraçada sobre mim",
+     "pontos": 18
+    },
+    {
+     "texto": "Seja rápido, sem enrolação",
+     "pontos": 14
+    }
+   ],
+   "categoria": "Humor negro",
+   "numero": 250
   }
  ]
 }
@@ -6076,6 +8004,9 @@ function desenharJogo(){
   var r = rodadaAtual();
   marcarUsada(r);
   $("pergunta").textContent = r.pergunta || "(sem pergunta)";
+  $("tema").textContent = r.categoria || "";
+  $("tema-num").textContent = "#" + String(r.numero || 0).padStart(3, "0");
+  $("tema").textContent = r.categoria || "";
   desenharPainel(r);
   desenharErros();
   atualizarTopo();
@@ -6103,7 +8034,7 @@ function desenharPainel(r){
     b.innerHTML =
       '<span class="slot-inner">' +
         '<span class="face frente"><span class="num">' + (idx+1) + '</span></span>' +
-        '<span class="face verso"><span class="texto"></span>' +
+        '<span class="face verso"><span class="medalha">' + (idx+1) + '</span><span class="texto"></span>' +
         '<span class="pontos">' + (lista[idx].pontos||0) + '</span></span>' +
       '</span>';
     b.querySelector(".texto").textContent = lista[idx].texto || "";
@@ -6145,6 +8076,8 @@ function atualizarTopo(){
   $("nome-1").textContent = ST.times[1].nome;
   $("btn-dar-0").innerHTML = "Banco → " + ST.times[0].nome + "<kbd>A</kbd>";
   $("btn-dar-1").innerHTML = "Banco → " + ST.times[1].nome + "<kbd>B</kbd>";
+  $("btn-turno-0").innerHTML = "Turno → " + ST.times[0].nome + "<kbd>C</kbd>";
+  $("btn-turno-1").innerHTML = "Turno → " + ST.times[1].nome + "<kbd>V</kbd>";
   $("time-0").classList.toggle("ativo", ST.ativo === 0);
   $("time-1").classList.toggle("ativo", ST.ativo === 1);
   var desempate = ST.pos >= ST.porPartida;
@@ -6176,7 +8109,14 @@ function marcarErro(){
   var f = $("flash-erro");
   f.classList.add("on");
   setTimeout(function(){ f.classList.remove("on"); }, 700);
-  if (ST.erros === 3) ST.ativo = ST.ativo === 0 ? 1 : 0;
+  var jogo = $("tela-jogo");
+  jogo.classList.remove("tremendo");
+  void jogo.offsetWidth;
+  jogo.classList.add("tremendo");
+  if (ST.erros === 3){
+    darBanco(ST.ativo);
+    ST.ativo = ST.ativo === 0 ? 1 : 0;
+  }
   desenharErros();
   atualizarTopo();
 }
@@ -6204,6 +8144,27 @@ function avancarFim(){
   }
   finalizar();
 }
+function confete(cores){
+  var alvo = $("confete");
+  if (!alvo) return;
+  alvo.innerHTML = "";
+  var n = 90;
+  for (var i=0;i<n;i++){
+    var c = document.createElement("span");
+    c.className = "peca-confete";
+    var larg = 6 + Math.random()*7, alt = 8 + Math.random()*10;
+    c.style.width = larg + "px";
+    c.style.height = alt + "px";
+    c.style.left = Math.random()*100 + "vw";
+    c.style.background = cores[Math.floor(Math.random()*cores.length)];
+    c.style.setProperty("--giro", (Math.random()>0.5?1:-1) * (360+Math.random()*540) + "deg");
+    var dur = 2.6 + Math.random()*2.2;
+    c.style.animationDuration = dur + "s";
+    c.style.animationDelay = (Math.random()*0.5) + "s";
+    alvo.appendChild(c);
+  }
+  setTimeout(function(){ alvo.innerHTML = ""; }, 5200);
+}
 function finalizar(){
   var a = ST.times[0], b = ST.times[1];
   $("fim-nome-0").textContent = a.nome; $("fim-pts-0").textContent = a.pontos;
@@ -6220,6 +8181,10 @@ function finalizar(){
   }
   tocar("premio");
   mostrar("fim");
+  marcarNumeroDosBotoes("#tela-fim .fim-time");
+  if (a.pontos !== b.pontos){
+    confete(["#f7c249","#ffe19a","#3fc9f0","#f45f9d","#ffffff"]);
+  }
 }
 function atualizarEstoque(){
   var total = dados.rodadas.length, livres = disponiveis().length;
@@ -6249,7 +8214,13 @@ function salvarEquipes(){
 }
 function irEquipes(t){ mostrar("equipes"); prepararEquipes(t); }
 
+function definirTurno(t){
+  ST.ativo = t;
+  atualizarTopo();
+}
 $("btn-erro").addEventListener("click", marcarErro);
+$("btn-turno-0").addEventListener("click", function(){ definirTurno(0); });
+$("btn-turno-1").addEventListener("click", function(){ definirTurno(1); });
 $("btn-limpar-erro").addEventListener("click", function(){ ST.erros = 0; desenharErros(); });
 $("btn-dar-0").addEventListener("click", function(){ darBanco(0); });
 $("btn-dar-1").addEventListener("click", function(){ darBanco(1); });
@@ -6326,7 +8297,7 @@ document.addEventListener("keydown", function(ev){
   if (tag === "input" || tag === "textarea") return;
   var k = ev.key.toLowerCase();
   if (k === "f"){ telaCheia(); return; }
-  if (k === "escape"){ mostrar("menu"); return; }
+  if (k === "q"){ mostrar("menu"); return; }
   if (!$("tela-jogo").classList.contains("ativa")) return;
   if (k >= "1" && k <= "8"){ abrir(parseInt(k,10)-1); ev.preventDefault(); return; }
   if (k === "x"){ marcarErro(); ev.preventDefault(); return; }
@@ -6335,6 +8306,14 @@ document.addEventListener("keydown", function(ev){
   if (k === "r"){ $("btn-revelar").click(); return; }
   if (k === "m"){ $("btn-mult").click(); return; }
   if (k === "n"){ irRodada(1); return; }
+  if (k === "z"){ $("btn-limpar-erro").click(); return; }
+  if (k === "c"){ definirTurno(0); return; }
+  if (k === "v"){ definirTurno(1); return; }
+  if (k === "o"){ $("btn-ordem").click(); return; }
+  if (k === "e"){ $("btn-encerrar").click(); return; }
+  if (k === "t"){ $("btn-equipes").click(); return; }
+  if (k === "0"){ $("btn-som").click(); return; }
+  if (k === "9"){ $("btn-zerar").click(); return; }
   if (k === "s"){ $("btn-embaralhar").click(); return; }
   if (k === "arrowright"){ irRodada(1); return; }
   if (k === "arrowleft"){ irRodada(-1); return; }
@@ -6460,7 +8439,7 @@ $("btn-baixar-html").addEventListener("click", function(){
   var fim = HTML_ORIGINAL.indexOf("/*DADOS-FIM*/");
   if (ini < 0 || fim < 0){ alert("Não foi possível montar o arquivo. Use “Salvar arquivo .json”."); return; }
   var novo = HTML_ORIGINAL.slice(0, ini + 13) + "\n" + JSON.stringify(dados, null, 1) + "\n" + HTML_ORIGINAL.slice(fim);
-  baixar("jogo_da_familia_adulto.html", novo, "text/html");
+  baixar("jogo_da_familia.html", novo, "text/html");
 });
 function baixar(nome, conteudo, tipo){
   var blob = new Blob([conteudo], {type: tipo + ";charset=utf-8"});
@@ -6472,11 +8451,35 @@ function baixar(nome, conteudo, tipo){
 }
 
 /* ---------------- início ---------------- */
+function criarParticulas(){
+  var alvo = $("particulas");
+  if (!alvo) return;
+  var n = 26;
+  for (var i=0;i<n;i++){
+    var p = document.createElement("span");
+    p.className = "particula";
+    var tam = 2 + Math.random()*4;
+    p.style.width = tam + "px";
+    p.style.height = tam + "px";
+    p.style.left = Math.random()*100 + "vw";
+    p.style.setProperty("--dx", (Math.random()*80-40) + "px");
+    var dur = 9 + Math.random()*10;
+    p.style.animationDuration = dur + "s";
+    p.style.animationDelay = (-Math.random()*dur) + "s";
+    alvo.appendChild(p);
+  }
+}
+function marcarNumeroDosBotoes(seletor){
+  var els = document.querySelectorAll(seletor);
+  els.forEach(function(el, i){ el.style.setProperty("--i", i); });
+}
 window.addEventListener("DOMContentLoaded", function(){
   HTML_ORIGINAL = "<!DOCTYPE html>\n" + document.documentElement.outerHTML;
   carregar();
   montarPartida();
   $("menu-info").textContent = dados.rodadas.length + " perguntas no banco · " + disponiveis().length + " ainda não usadas";
+  criarParticulas();
+  marcarNumeroDosBotoes("#tela-menu .btn-menu");
 });
 })();
 </script>
