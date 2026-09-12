@@ -328,13 +328,18 @@ button{font:inherit;color:inherit;background:none;border:none;cursor:pointer}
   background:radial-gradient(60% 60% at 50% 50%, rgba(200,25,28,.72), rgba(90,5,6,.9));
   font-size:min(42vh,42vw);font-weight:900;color:#fff;text-shadow:0 0 60px rgba(0,0,0,.55)
 }
-#flash-erro.on{display:flex;animation:bater .55s ease both}
+#flash-erro.on{display:flex;animation:bater 1.6s ease both}
 #confete{position:fixed;inset:0;z-index:60;pointer-events:none;overflow:hidden}
 .peca-confete{position:absolute;top:-16px;border-radius:2px;animation:cair linear forwards}
 @keyframes cair{
   to{transform:translateY(112vh) rotate(var(--giro,540deg));opacity:.15}
 }
-@keyframes bater{0%{opacity:0;transform:scale(1.35)}22%{opacity:1;transform:scale(1)}100%{opacity:1}}
+@keyframes bater{
+  0%{opacity:0;transform:scale(1.35)}
+  9%{opacity:1;transform:scale(1)}
+  78%{opacity:1;transform:scale(1)}
+  100%{opacity:0;transform:scale(.96)}
+}
 @keyframes tremer{
   10%,90%{transform:translateX(-1px)}
   20%,80%{transform:translateX(2px)}
@@ -956,7 +961,7 @@ function marcarErro(){
   tocar("erro");
   var f = $("flash-erro");
   f.classList.add("on");
-  setTimeout(function(){ f.classList.remove("on"); }, 700);
+  setTimeout(function(){ f.classList.remove("on"); }, 1600);
   var jogo = $("tela-jogo");
   jogo.classList.remove("tremendo");
   void jogo.offsetWidth;
